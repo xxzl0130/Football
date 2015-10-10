@@ -11,16 +11,9 @@
 #include <../US_distance/US_distance.h>
 #include <../AnalogGray/AnalogGray.h>
 
-template <typename T>
-void xAxisRun(Direction Dir,T Speed);
-
-template <typename T>
-void yAxisRun(Direction Dir,T Speed);
-
-template <typename T>
-void rotateRun(Direction Dir,T Speed);
-
-template <typename T>
-void angleRun(float Angle,T Speed);
+void xAxisRun(Direction Dir,char Speed);
+void yAxisRun(Direction Dir,char Speed);
+void rotateRun(Direction Dir,char Speed);
+void angleRun(float Angle,char Speed);
 
 #endif // __MY_MAIN_H__

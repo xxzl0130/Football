@@ -19,31 +19,27 @@ AnalogGray      xAxisGray2(A11);
 AnalogGray      yAxisGray1(A12);
 AnalogGray      yAxisGray2(A13);
 
-template <typename T>
-void xAxisRun(Direction Dir,T Speed)
+void xAxisRun(Direction Dir,char Speed)
 {
     xAxisMotor1.run(Dir,Speed);
     xAxisMotor2.run(Dir,Speed);
 }
 
-template <typename T>
-void yAxisRun(Direction Dir,T Speed)
+void yAxisRun(Direction Dir,char Speed)
 {
     yAxisMotor1.run(Dir,Speed);
     yAxisMotor2.run(Dir,Speed);
 }
 
-template <typename T>
-void rotateRun(Direction Dir,T Speed)
+void rotateRun(Direction Dir,char Speed)
 {
     xAxisMotor1.run(Dir,Speed);
-    xAxisMotor2.run(Dir ^ 1,Speed);
+    xAxisMotor2.run(Dir == FORWORD ? BACKWORD : FORWORD,Speed);
     yAxisMotor1.run(Dir,Speed);
-    yAxisMotor2.run(Dir ^ 1,Speed);
+    yAxisMotor2.run(Dir == FORWORD ? BACKWORD : FORWORD,Speed);
 }
 
-template <typename T>
-void angleRun(float Angle,T Speed)
+void angleRun(float Angle,char Speed)
 {
     float xAxisSpeed,yAxisSpeed;
 
