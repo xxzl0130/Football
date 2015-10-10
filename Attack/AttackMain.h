@@ -4,10 +4,12 @@
 #include "arduino.h"
 #include "Wire.h"
 
+#include "MyDef.h"
 #include "HMC5883L.h"
 #include "IR_Eye.h"
 #include "DC_Motor.h"
 #include "US_distance.h"
+#include "AnalogGray.h"
 
 HMC5883L        compass;
 IR_Eye          eye(A0,10);
@@ -21,5 +23,10 @@ US_Distance     xAxisUS1(26,27);
 US_Distance     xAxisUS2(28,29);
 US_Distance     yAxisUS1(30,31);
 US_Distance     yAxisUS2(32,33);
+
+AnalogGray      xAxisGray1(A10);
+AnalogGray      xAxisGray2(A11);
+AnalogGray      xAxisGray1(A12);
+AnalogGray      xAxisGray2(A13);
 
 #endif // __MY_MAIN_H__
