@@ -2,6 +2,7 @@
 #define __MY_MAIN_H__
 
 #include "arduino.h"
+#include "math.h"
 #include "Wire.h"
 
 #include "MyDef.h"
@@ -28,5 +29,17 @@ AnalogGray      xAxisGray1(A10);
 AnalogGray      xAxisGray2(A11);
 AnalogGray      xAxisGray1(A12);
 AnalogGray      xAxisGray2(A13);
+
+template <typename T>
+void xAxisRun(enum Dir,T Speed);
+
+template <typename T>
+void yAxisRun(enum Dir,T Speed);
+
+template <typename T>
+void rotateRun(enum Dir,T Speed);
+
+template <typename T>
+void angleRun(float Angle,T Speed);
 
 #endif // __MY_MAIN_H__
