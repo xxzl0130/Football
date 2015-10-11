@@ -11,9 +11,9 @@
 #include <../US_distance/US_distance.h>
 #include <../AnalogGray/AnalogGray.h>
 
-void xAxisRun(Direction Dir,uchar Speed);
-void yAxisRun(Direction Dir,uchar Speed);
-void rotateRun(Direction Dir,uchar Speed);
-void angleRun(float Angle,uchar Speed);
+inline void xAxisRun(Direction Dir,uchar Speed);
+inline void yAxisRun(Direction Dir,uchar Speed);
+inline void rotateRun(Direction Dir,uchar Speed);
+inline void angleRun(float Angle,uchar Speed);
 
 #endif // __ATTACK_MAIN_H__
