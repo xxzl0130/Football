@@ -13,4 +13,8 @@
 #define ULONG unsigned long
 #endif
 
+#ifndef FLASH_FREQUENCE
+#define FLASH_FREQUENCE 25
+#endif
+
 #endif // __MY_DEF_H__

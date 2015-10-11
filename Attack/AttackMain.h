@@ -10,10 +10,13 @@
 #include <../DC_Motor/DC_Motor.h>
 #include <../US_distance/US_distance.h>
 #include <../AnalogGray/AnalogGray.h>
+#include <../MsTimer2/MsTimer2.h>
 
 inline void xAxisRun(Direction Dir,uchar Speed);
 inline void yAxisRun(Direction Dir,uchar Speed);
 inline void rotateRun(Direction Dir,uchar Speed);
 inline void angleRun(float Angle,uchar Speed);
+
+void process();
 
 #endif // __ATTACK_MAIN_H__
