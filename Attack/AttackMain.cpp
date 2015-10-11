@@ -19,19 +19,19 @@ AnalogGray      xAxisGray2(A11);
 AnalogGray      yAxisGray1(A12);
 AnalogGray      yAxisGray2(A13);
 
-void xAxisRun(Direction Dir,char Speed)
+void xAxisRun(Direction Dir,uchr Speed)
 {
     xAxisMotor1.run(Dir,Speed);
     xAxisMotor2.run(Dir,Speed);
 }
 
-void yAxisRun(Direction Dir,char Speed)
+void yAxisRun(Direction Dir,uchr Speed)
 {
     yAxisMotor1.run(Dir,Speed);
     yAxisMotor2.run(Dir,Speed);
 }
 
-void rotateRun(Direction Dir,char Speed)
+void rotateRun(Direction Dir,uchr Speed)
 {
     xAxisMotor1.run(Dir,Speed);
     xAxisMotor2.run(Dir == FORWORD ? BACKWORD : FORWORD,Speed);
@@ -39,13 +39,13 @@ void rotateRun(Direction Dir,char Speed)
     yAxisMotor2.run(Dir == FORWORD ? BACKWORD : FORWORD,Speed);
 }
 
-void angleRun(float Angle,char Speed)
+void angleRun(float Angle,uchr Speed)
 {
     float xAxisSpeed,yAxisSpeed;
 
     xAxisSpeed = cos(Angle);
     yAxisSpeed = sin(Angle);
 
-    xAxisRun(xAxisSpeed > 0 ? FORWORD : BACKWORD,fabs(Speed * xAxisSpeed));
-    yAxisRun(yAxisSpeed > 0 ? FORWORD : BACKWORD,fabs(Speed * yAxisSpeed));
+    xAxisRun(xAxisSpeed > 0 ? FORWORD : BACKWORD,(uchr)fabs(Speed * xAxisSpeed));
+    yAxisRun(yAxisSpeed > 0 ? FORWORD : BACKWORD,(uchr)fabs(Speed * yAxisSpeed));
 }

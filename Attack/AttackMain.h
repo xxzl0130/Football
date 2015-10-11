@@ -1,5 +1,5 @@
-#ifndef __MY_MAIN_H__
-#define __MY_MAIN_H__
+#ifndef __ATTACK_MAIN_H__
+#define __ATTACK_MAIN_H__
 
 #include <MyDef.h>
 #include <arduino.h>
@@ -11,9 +11,9 @@
 #include <../US_distance/US_distance.h>
 #include <../AnalogGray/AnalogGray.h>
 
-void xAxisRun(Direction Dir,char Speed);
-void yAxisRun(Direction Dir,char Speed);
-void rotateRun(Direction Dir,char Speed);
-void angleRun(float Angle,char Speed);
+void xAxisRun(Direction Dir,uchar Speed);
+void yAxisRun(Direction Dir,uchar Speed);
+void rotateRun(Direction Dir,uchar Speed);
+void angleRun(float Angle,uchar Speed);
 
-#endif // __MY_MAIN_H__
+#endif // __ATTACK_MAIN_H__
