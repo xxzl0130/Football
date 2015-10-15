@@ -3,6 +3,7 @@
 
 #include <MyDef.h>
 #include <arduino.h>
+#include <EEPROM.h>
 #include <math.h>
 #include <C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\Wire.h>
 #include <../HMC5883L/HMC5883L.h>
@@ -20,8 +21,8 @@
 #define uint unsigned int
 #endif
 
-#ifndef ULONG
-#define ULONG unsigned long
+#ifndef ulong
+#define ulong unsigned long
 #endif
 
 inline void xAxisRun(Direction Dir,uchr Speed);
@@ -30,5 +31,7 @@ inline void rotateRun(Direction Dir,uchr Speed);
 inline void angleRun(float Angle,uchr Speed);
 
 void process();
+void presetColor();
+void loadPresetColor();
 
 #endif // __ATTACK_MAIN_H__
