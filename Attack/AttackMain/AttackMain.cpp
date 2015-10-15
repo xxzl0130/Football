@@ -2,7 +2,7 @@
 #include <arduino.h>
 
 HMC5883L        compass;
-IR_Eye          eye(A0,10);
+IR_Eye          eye();
 
 DC_Motor_EN     xAxisMotor1(2,3,22);
 DC_Motor_EN     xAxisMotor2(4,5,23);
@@ -49,3 +49,4 @@ inline void angleRun(float Angle,uchr Speed)
     xAxisRun(xAxisSpeed > 0 ? FORWORD : BACKWORD,(uchr)fabs(Speed * xAxisSpeed));
     yAxisRun(yAxisSpeed > 0 ? FORWORD : BACKWORD,(uchr)fabs(Speed * yAxisSpeed));
 }
+

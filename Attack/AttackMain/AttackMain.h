@@ -12,10 +12,22 @@
 #include <../AnalogGray/AnalogGray.h>
 #include <../MsTimer2/MsTimer2.h>
 
-inline void xAxisRun(Direction Dir,uchar Speed);
-inline void yAxisRun(Direction Dir,uchar Speed);
-inline void rotateRun(Direction Dir,uchar Speed);
-inline void angleRun(float Angle,uchar Speed);
+#ifndef uchr
+#define uchr unsigned char
+#endif
+
+#ifndef uint
+#define uint unsigned int
+#endif
+
+#ifndef ULONG
+#define ULONG unsigned long
+#endif
+
+inline void xAxisRun(Direction Dir,uchr Speed);
+inline void yAxisRun(Direction Dir,uchr Speed);
+inline void rotateRun(Direction Dir,uchr Speed);
+inline void angleRun(float Angle,uchr Speed);
 
 void process();
 
