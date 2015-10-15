@@ -8,7 +8,7 @@
 #endif
 
 #ifndef uint
-#define uint unsigned INT_MAX
+#define uint unsigned int
 #endif
 
 class AnalogGray{

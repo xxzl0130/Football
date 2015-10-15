@@ -14,10 +14,11 @@
 
 class IR_Eye{
 private:
-    uchr sPin, cntEye, degreePerEye;
+    uchr sPin, cntEye;
+    uint degreePerEye;
 
 public:
-    IR_Eye(uchr Pin = A0,uchr Cnt = 6)
+    IR_Eye(uchr Pin = A0,uchr Cnt = 6,uint Angel = 180)
     {
         sPin = Pin;
         cntEye = Cnt;
@@ -27,7 +28,7 @@ public:
             pinMode(sPin + i, INPUT);
         }
 
-        degreePerEye = 180 / (cntEye - 1);
+        degreePerEye = Angel / (cntEye - 1);
     }
 
     uchr getMinNo()
@@ -59,6 +60,21 @@ public:
         {
             arr[i] = analogRead(sPin + i);
         }
+    }
+
+    void printAll2Ser()
+    {
+        while(!Serial)
+        {
+            Serial.begin(9600);
+        }
+
+        for(uchr i = 0;i < cntEye;++i)
+        {
+            Serial.print(analogRead(sPin + i));
+            Serial.print(" | ");
+        }
+        Serial.print("\n");
     }
 };
 
