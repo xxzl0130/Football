@@ -4,10 +4,10 @@
 HMC5883L        compass;
 IR_Eye          eye(A0,10,360);
 
-DC_Motor_EN     xAxisMotor1(2,3,22);
-DC_Motor_EN     xAxisMotor2(4,5,23);
-DC_Motor_EN     yAxisMotor1(6,7,24);
-DC_Motor_EN     yAxisMotor2(8,9,25);
+DC_Motor_EN     xAxisMotor1(4,5,22);
+DC_Motor_EN     xAxisMotor2(6,7,23);
+DC_Motor_EN     yAxisMotor1(8,9,24);
+DC_Motor_EN     yAxisMotor2(10,11,25);
 
 US_Distance     xAxisUS1(26,27);
 US_Distance     xAxisUS2(28,29);

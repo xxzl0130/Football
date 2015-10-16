@@ -31,7 +31,7 @@ public:
     }
 };
 
-class AnalogGray_Color:protected AnalogGray{
+class AnalogGray_Color:public AnalogGray{
 protected:
     uchr cntColor;
     uint *colorPtr;

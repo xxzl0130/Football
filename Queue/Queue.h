@@ -114,7 +114,7 @@ public:
 };
 
 template<typename T>
-class CircleQueue_Avg
+class CircleQueue_Avg:
 {
 protected:
     unsigned int cnt,pos;
