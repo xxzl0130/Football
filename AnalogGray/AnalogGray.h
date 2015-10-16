@@ -2,6 +2,7 @@
 #define __ANALOG_GRAY_H__
 
 #include "arduino.h"
+#include "Queue.h"
 
 #ifndef uchr
 #define uchr unsigned char
@@ -29,6 +30,7 @@ class AnalogGray_Color:protected AnalogGray{
 protected:
     uchr cntColor;
     uint *colorPtr;
+    Queue::CircleQueue_Avg<uint> colorQue(8);
 public:
     AnalogGray_Color(uchr p,uchr cnt):AnalogGray(p)
     {
@@ -59,6 +61,12 @@ public:
                 return i;
         }
         return cntColor;
+    }
+
+    uint smoothRead()
+    {
+        colorQue.push(read());
+        return colorQue.avg();
     }
 };
 

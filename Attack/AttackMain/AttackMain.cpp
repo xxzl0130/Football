@@ -2,7 +2,7 @@
 #include <arduino.h>
 
 HMC5883L        compass;
-IR_Eye          eye();
+IR_Eye          eye(A0,10,360);
 
 DC_Motor_EN     xAxisMotor1(2,3,22);
 DC_Motor_EN     xAxisMotor2(4,5,23);
@@ -50,59 +50,170 @@ inline void angleRun(float Angle,uchr Speed)
     yAxisRun(yAxisSpeed > 0 ? FORWORD : BACKWORD,(uchr)fabs(Speed * yAxisSpeed));
 }
 
+inline void motorStop()
+{
+    xAxisMotor1.stop();
+    xAxisMotor2.stop();
+    yAxisMotor1.stop();
+    yAxisMotor2.stop();
+}
+
+void presetColor()
+{
+    uint color[4][4];
+
+    for(uchr i = 0;i < 10;++i)
+    {
+        xAxisGray1.smoothRead();
+        xAxisGray2.smoothRead();
+        yAxisGray1.smoothRead();
+        yAxisGray1.smoothRead();
+        delay(100);
+    }
+    //初始化平均值
+
+    color[0][0] = xAxisGray1.smoothRead();
+    color[1][0] = xAxisGray2.smoothRead();
+    color[2][0] = yAxisGray1.smoothRead();
+    color[3][0] = yAxisGray2.smoothRead();
+    //保存第一组数据，需要保证放置机器在第一个（最左侧或最右侧）色块
+
+    do{
+        xAxisRun(FORWORD,80);
+        delay(40)
+    }while(abs(color[0][0] - xAxisGray1.smoothRead()) <= ColorThreshold ||
+           abs(color[1][0] - xAxisGray2.smoothRead()) <= ColorThreshold ||
+           abs(color[2][0] - yAxisGray1.smoothRead()) <= ColorThreshold ||
+           abs(color[3][0] - yAxisGray2.smoothRead()) <= ColorThreshold);
+    delay(40);
+    motorStop();
+    //向一侧缓慢移动并同时检测颜色
+
+    for(uchr i = 0;i < 8;++i)
+    {
+        xAxisGray1.smoothRead();
+        xAxisGray2.smoothRead();
+        yAxisGray1.smoothRead();
+        yAxisGray1.smoothRead();
+        delay(100);
+    }
+    //平滑处理
+
+    color[0][1] = xAxisGray1.smoothRead();
+    color[1][1] = xAxisGray2.smoothRead();
+    color[2][1] = yAxisGray1.smoothRead();
+    color[3][1] = yAxisGray2.smoothRead();
+    //存入第二组颜色
+
+    do{
+        xAxisRun(FORWORD,80);
+        delay(40)
+    }while(abs(color[0][1] - xAxisGray1.smoothRead()) <= ColorThreshold ||
+           abs(color[1][1] - xAxisGray2.smoothRead()) <= ColorThreshold ||
+           abs(color[2][1] - yAxisGray1.smoothRead()) <= ColorThreshold ||
+           abs(color[3][1] - yAxisGray2.smoothRead()) <= ColorThreshold);
+    delay(40);
+    motorStop();
+    //继续移动寻找第三个色块
+
+    for(uchr i = 0;i < 8;++i)
+    {
+        xAxisGray1.smoothRead();
+        xAxisGray2.smoothRead();
+        yAxisGray1.smoothRead();
+        yAxisGray1.smoothRead();
+        delay(100);
+    }
+    //平滑处理
+
+    color[0][2] = xAxisGray1.smoothRead();
+    color[1][2] = xAxisGray2.smoothRead();
+    color[2][2] = yAxisGray1.smoothRead();
+    color[3][2] = yAxisGray2.smoothRead();
+    //存入第三个颜色
+
+    do{
+        xAxisRun(BACKWORD,80);
+        delay(40)
+    }while(abs(color[0][1] - xAxisGray1.smoothRead()) > ColorThreshold ||
+           abs(color[1][1] - xAxisGray2.smoothRead()) > ColorThreshold ||
+           abs(color[2][1] - yAxisGray1.smoothRead()) > ColorThreshold ||
+           abs(color[3][1] - yAxisGray2.smoothRead()) > ColorThreshold);
+    delay(40);
+    motorStop();
+    //退回到第二个色块
+    do{
+        yAxisRun(FORWORD,80);
+        delay(40)
+    }while(abs(color[0][1] - xAxisGray1.smoothRead()) <= ColorThreshold ||
+           abs(color[1][1] - xAxisGray2.smoothRead()) <= ColorThreshold ||
+           abs(color[2][1] - yAxisGray1.smoothRead()) <= ColorThreshold ||
+           abs(color[3][1] - yAxisGray2.smoothRead()) <= ColorThreshold);
+    delay(40);
+    motorStop();
+    //竖直移动到禁区黑色块
+
+    for(uchr i = 0;i < 8;++i)
+    {
+        xAxisGray1.smoothRead();
+        xAxisGray2.smoothRead();
+        yAxisGray1.smoothRead();
+        yAxisGray1.smoothRead();
+        delay(100);
+    }
+    //平滑处理
+
+    color[0][2] = xAxisGray1.smoothRead();
+    color[1][2] = xAxisGray2.smoothRead();
+    color[2][2] = yAxisGray1.smoothRead();
+    color[3][2] = yAxisGray2.smoothRead();
+    //存入第四个颜色
+
+    uint addr = ColorStorageAddr;
+    byte high,low;
+    for(uchr i = 0;i < 4;++i)
+    {
+        for(uchr j = 0;j < 4;++j)
+        {
+            high = (byte)(color[i][j] >> 8);
+            low = (byte)(color[i][j] & 0xff);
+            EEPROM.write(addr++,high);
+            EEPROM.write(addr+,low);
+        }
+    }
+    //将数据存入EEPROM
+}
+
 void loadPresetColor()
 {
     byte high,low;
+    uint addr = ColorStorageAddr;
 
-    high = EEPROM.read(0);
-    low = EEPROM.read(1);
-    xAxisGray1.setColor(0,(uint)high << 8 | low);
-    high = EEPROM.read(2);
-    low = EEPROM.read(3);
-    xAxisGray1.setColor(1,(uint)high << 8 | low);
-    high = EEPROM.read(4);
-    low = EEPROM.read(5);
-    xAxisGray1.setColor(2,(uint)high << 8 | low);
-    high = EEPROM.read(6);
-    low = EEPROM.read(7);
-    xAxisGray1.setColor(3,(uint)high << 8 | low);
+    for(uchr i = 0;i < 4;++i)
+    {
+        high = EEPROM.read(addr++);
+        low = EEPROM.read(addr++);
+        xAxisGray1.setColor(i,(uint)high << 8 | low);
+    }
 
-    high = EEPROM.read(8);
-    low = EEPROM.read(9);
-    xAxisGray2.setColor(0,(uint)high << 8 | low);
-    high = EEPROM.read(10);
-    low = EEPROM.read(11);
-    xAxisGray2.setColor(1,(uint)high << 8 | low);
-    high = EEPROM.read(12);
-    low = EEPROM.read(13);
-    xAxisGray2.setColor(2,(uint)high << 8 | low);
-    high = EEPROM.read(14);
-    low = EEPROM.read(15);
-    xAxisGray2.setColor(3,(uint)high << 8 | low);
+    for(uchr i = 0;i < 4;++i)
+    {
+        high = EEPROM.read(addr++);
+        low = EEPROM.read(addr++);
+        xAxisGray2.setColor(i,(uint)high << 8 | low);
+    }
 
-    high = EEPROM.read(13);
-    low = EEPROM.read(17);
-    yAxisGray1.setColor(0,(uint)high << 8 | low);
-    high = EEPROM.read(18);
-    low = EEPROM.read(19);
-    yAxisGray1.setColor(1,(uint)high << 8 | low);
-    high = EEPROM.read(20);
-    low = EEPROM.read(21);
-    yAxisGray1.setColor(2,(uint)high << 8 | low);
-    high = EEPROM.read(22);
-    low = EEPROM.read(23);
-    yAxisGray1.setColor(3,(uint)high << 8 | low);
+    for(uchr i = 0;i < 4;++i)
+    {
+        high = EEPROM.read(addr++);
+        low = EEPROM.read(addr++);
+        yAxisGray1.setColor(i,(uint)high << 8 | low);
+    }
 
-    high = EEPROM.read(24);
-    low = EEPROM.read(25);
-    yAxisGray2.setColor(0,(uint)high << 8 | low);
-    high = EEPROM.read(26);
-    low = EEPROM.read(27);
-    yAxisGray2.setColor(1,(uint)high << 8 | low);
-    high = EEPROM.read(28);
-    low = EEPROM.read(29);
-    yAxisGray2.setColor(2,(uint)high << 8 | low);
-    high = EEPROM.read(30);
-    low = EEPROM.read(31);
-    yAxisGray2.setColor(3,(uint)high << 8 | low);
+    for(uchr i = 0;i < 4;++i)
+    {
+        high = EEPROM.read(addr++);
+        low = EEPROM.read(addr++);
+        yAxisGray2.setColor(i,(uint)high << 8 | low);
+    }
 }
