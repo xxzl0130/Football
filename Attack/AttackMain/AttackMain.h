@@ -26,8 +26,13 @@
 #define ulong unsigned long
 #endif
 
+#ifndef ColorThreshold
 #define ColorThreshold      20
+#endif
+
+#ifndef ColorStorageAddr
 #define ColorStorageAddr    0
+#endif
 
 inline void xAxisRun(Direction Dir,uchr Speed);
 inline void yAxisRun(Direction Dir,uchr Speed);
