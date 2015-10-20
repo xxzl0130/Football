@@ -2,9 +2,9 @@
 #define __ATTACK_MAIN_H__
 
 #include <arduino.h>
-#include <EEPROM.h>
 #include <math.h>
 #include <stdlib.h>
+#include <C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\EEPROM\EEPROM.h>
 #include <C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\Wire.h>
 #include <../HMC5883L/HMC5883L.h>
 #include <../IR_Eye/IR_Eye.h>
@@ -33,12 +33,6 @@
 #ifndef ColorStorageAddr
 #define ColorStorageAddr    0
 #endif
-
-inline void xAxisRun(Direction Dir,uchr Speed);
-inline void yAxisRun(Direction Dir,uchr Speed);
-inline void rotateRun(Direction Dir,uchr Speed);
-inline void angleRun(float Angle,uchr Speed);
-inline void motorStop();
 
 void process();
 void presetColor();

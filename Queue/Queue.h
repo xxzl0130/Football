@@ -1,8 +1,7 @@
 #ifndef __QUEUE_H__
 #define __QUEUE_H__
 
-namespace Queue
-{
+#include<stdlib.h>
 
 template<typename T>
 struct QueueNode
@@ -68,7 +67,7 @@ public:
         }
         else
         {
-            return T(0)
+            return T(0);
         }
     }
 
@@ -114,14 +113,14 @@ public:
 };
 
 template<typename T>
-class CircleQueue_Avg:
+class CircleQueue_Avg:protected CircleQueue<T>
 {
 protected:
     unsigned int cnt,pos;
     T *dataPtr;
     T Avg;
 public:
-    CircleQueue_Avg(unsigned int n):CircleQueue<T>(n)
+    CircleQueue_Avg(unsigned int n = 8):CircleQueue<T>(n)
     {
         Avg = T(0);
     }
@@ -149,6 +148,6 @@ public:
         return Avg / cnt;
     }
 };
-}
+
 
 #endif // __QUEUE_H__
