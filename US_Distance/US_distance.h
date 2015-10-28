@@ -11,7 +11,7 @@ class US_Distance{
 private:
     uchr echoPin,trigPin;
 public:
-    US_Distance(uchr EchoPin = 2, uchr TrigPin = 3)
+    US_Distance(uchr TrigPin = 2, uchr EchoPin = 3)
     {
         pinMode(echoPin = EchoPin,INPUT);
         pinMode(trigPin = TrigPin,OUTPUT);

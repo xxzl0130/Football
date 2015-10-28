@@ -1,7 +1,7 @@
 #include "AttackMain.h"
 #include <arduino.h>
 
-HMC5883L        compass;
+LSM303          compass;
 IR_Eye          eye(A0,10,360);
 
 DC_MotorVerticalSquare<DC_Motor_EN> motor(DC_MotorPair<DC_Motor_EN>(DC_Motor_EN(4,5,22),DC_Motor_EN(6,7,23)),
@@ -17,6 +17,9 @@ AnalogGray_Color      xAxisGray2(A11,4);
 AnalogGray_Color      yAxisGray1(A12,4);
 AnalogGray_Color      yAxisGray2(A13,4);
 
+float xAxisMagDir = 0.0;
+//æ¯”èµ›åœºåœ°xè½´æ–¹å‘çš„ç£è§’åº¦ï¼Œç”¨äºç¡®å®šæ–¹å‘
+
 void presetColor()
 {
     uint color[4][4];
@@ -29,13 +32,13 @@ void presetColor()
         yAxisGray1.smoothRead();
         delay(100);
     }
-    //³õÊ¼»¯Æ½¾ùÖµ
+    //åˆå§‹åŒ–å¹³å‡å€¼
 
     color[0][0] = xAxisGray1.smoothRead();
     color[1][0] = xAxisGray2.smoothRead();
     color[2][0] = yAxisGray1.smoothRead();
     color[3][0] = yAxisGray2.smoothRead();
-    //±£´æµÚÒ»×éÊı¾İ£¬ĞèÒª±£Ö¤·ÅÖÃ»úÆ÷ÔÚµÚÒ»¸ö£¨×î×ó²à»ò×îÓÒ²à£©É«¿é
+    //ä¿å­˜ç¬¬ä¸€ç»„æ•°æ®ï¼Œéœ€è¦ä¿è¯æ”¾ç½®æœºå™¨åœ¨ç¬¬ä¸€ä¸ªï¼ˆæœ€å·¦ä¾§æˆ–æœ€å³ä¾§ï¼‰è‰²å—
 
     do{
         motor.xAxisRun(FORWORD,80);
@@ -46,7 +49,7 @@ void presetColor()
            abs(color[3][0] - yAxisGray2.smoothRead()) <= ColorThreshold);
     delay(40);
     motor.stop();
-    //ÏòÒ»²à»ºÂıÒÆ¶¯²¢Í¬Ê±¼ì²âÑÕÉ«
+    //å‘ä¸€ä¾§ç¼“æ…¢ç§»åŠ¨å¹¶åŒæ—¶æ£€æµ‹é¢œè‰²
 
     for(uchr i = 0;i < 8;++i)
     {
@@ -56,13 +59,13 @@ void presetColor()
         yAxisGray1.smoothRead();
         delay(100);
     }
-    //Æ½»¬´¦Àí
+    //å¹³æ»‘å¤„ç†
 
     color[0][1] = xAxisGray1.smoothRead();
     color[1][1] = xAxisGray2.smoothRead();
     color[2][1] = yAxisGray1.smoothRead();
     color[3][1] = yAxisGray2.smoothRead();
-    //´æÈëµÚ¶ş×éÑÕÉ«
+    //å­˜å…¥ç¬¬äºŒç»„é¢œè‰²
 
     do{
         motor.xAxisRun(FORWORD,80);
@@ -73,7 +76,7 @@ void presetColor()
            abs(color[3][1] - yAxisGray2.smoothRead()) <= ColorThreshold);
     delay(40);
     motor.stop();
-    //¼ÌĞøÒÆ¶¯Ñ°ÕÒµÚÈı¸öÉ«¿é
+    //ç»§ç»­ç§»åŠ¨å¯»æ‰¾ç¬¬ä¸‰ä¸ªè‰²å—
 
     for(uchr i = 0;i < 8;++i)
     {
@@ -83,13 +86,13 @@ void presetColor()
         yAxisGray1.smoothRead();
         delay(100);
     }
-    //Æ½»¬´¦Àí
+    //å¹³æ»‘å¤„ç†
 
     color[0][2] = xAxisGray1.smoothRead();
     color[1][2] = xAxisGray2.smoothRead();
     color[2][2] = yAxisGray1.smoothRead();
     color[3][2] = yAxisGray2.smoothRead();
-    //´æÈëµÚÈı¸öÑÕÉ«
+    //å­˜å…¥ç¬¬ä¸‰ä¸ªé¢œè‰²
 
     do{
         motor.xAxisRun(BACKWORD,80);
@@ -100,7 +103,7 @@ void presetColor()
            abs(color[3][1] - yAxisGray2.smoothRead()) > ColorThreshold);
     delay(40);
     motor.stop();
-    //ÍË»Øµ½µÚ¶ş¸öÉ«¿é
+    //é€€å›åˆ°ç¬¬äºŒä¸ªè‰²å—
     do{
         motor.yAxisRun(FORWORD,80);
         delay(40);
@@ -110,7 +113,7 @@ void presetColor()
            abs(color[3][1] - yAxisGray2.smoothRead()) <= ColorThreshold);
     delay(40);
     motor.stop();
-    //ÊúÖ±ÒÆ¶¯µ½½ûÇøºÚÉ«¿é
+    //ç«–ç›´ç§»åŠ¨åˆ°ç¦åŒºé»‘è‰²å—
 
     for(uchr i = 0;i < 8;++i)
     {
@@ -120,13 +123,13 @@ void presetColor()
         yAxisGray1.smoothRead();
         delay(100);
     }
-    //Æ½»¬´¦Àí
+    //å¹³æ»‘å¤„ç†
 
     color[0][2] = xAxisGray1.smoothRead();
     color[1][2] = xAxisGray2.smoothRead();
     color[2][2] = yAxisGray1.smoothRead();
     color[3][2] = yAxisGray2.smoothRead();
-    //´æÈëµÚËÄ¸öÑÕÉ«
+    //å­˜å…¥ç¬¬å››ä¸ªé¢œè‰²
 
     uint addr = ColorStorageAddr;
     byte high,low;
@@ -135,12 +138,12 @@ void presetColor()
         for(uchr j = 0;j < 4;++j)
         {
             high = (byte)(color[i][j] >> 8);
-            low = (byte)(color[i][j] & 0xff);
+            low  = (byte)(color[i][j] & 0xff);
             EEPROM.write(addr++,high);
             EEPROM.write(addr++,low);
         }
     }
-    //½«Êı¾İ´æÈëEEPROM
+    //å°†æ•°æ®å­˜å…¥EEPROM
 }
 
 void loadPresetColor()
@@ -151,28 +154,177 @@ void loadPresetColor()
     for(uchr i = 0;i < 4;++i)
     {
         high = EEPROM.read(addr++);
-        low = EEPROM.read(addr++);
+        low  = EEPROM.read(addr++);
         xAxisGray1.setColor(i,(uint)high << 8 | low);
     }
 
     for(uchr i = 0;i < 4;++i)
     {
         high = EEPROM.read(addr++);
-        low = EEPROM.read(addr++);
+        low  = EEPROM.read(addr++);
         xAxisGray2.setColor(i,(uint)high << 8 | low);
     }
 
     for(uchr i = 0;i < 4;++i)
     {
         high = EEPROM.read(addr++);
-        low = EEPROM.read(addr++);
+        low  = EEPROM.read(addr++);
         yAxisGray1.setColor(i,(uint)high << 8 | low);
     }
 
     for(uchr i = 0;i < 4;++i)
     {
         high = EEPROM.read(addr++);
-        low = EEPROM.read(addr++);
+        low  = EEPROM.read(addr++);
         yAxisGray2.setColor(i,(uint)high << 8 | low);
     }
+}
+
+void setCompassOffset()
+{
+    Wire.begin();
+    compass.init();
+    compass.enableDefault();
+
+    LSM303::vector<int> Max;
+    LSM303::vector<int> Min;
+    LSM303::vector<int> Offset;
+    Max.x = Max.y = Max.z = -32768;
+    Min.x = Min.y = Min.z = 32767;
+
+    motor.rotateRun(FORWORD, 64);
+    delay(200);
+
+    for(int i = 0;i < 10000;++i)
+    {
+        compass.read();
+
+        Max.x = max(Max.x,compass.m.x);
+        Max.y = max(Max.y,compass.m.y);
+        Max.z = max(Max.z,compass.m.z);
+
+        Min.x = min(Min.x,compass.m.x);
+        Min.y = min(Min.y,compass.m.y);
+        Min.z = min(Min.z,compass.m.z);
+
+        delay(20);
+    }
+
+    Offset.x = (Max.x + Min.x) / 2;
+    Offset.y = (Max.y + Min.y) / 2;
+    Offset.z = (Max.z + Min.z) / 2;
+
+    byte high,low;
+    uint addr = CompassStorageAddr;
+
+    high = (byte)(Offset.x >> 8);
+    low  = (byte)(Offset.x & 0xff);
+    EEPROM.write(addr++,high);
+    EEPROM.write(addr++,low);
+    high = (byte)(Offset.y >> 8);
+    low  = (byte)(Offset.y & 0xff);
+    EEPROM.write(addr++,high);
+    EEPROM.write(addr++,low);
+    high = (byte)(Offset.z >> 8);
+    low  = (byte)(Offset.z & 0xff);
+    EEPROM.write(addr++,high);
+    EEPROM.write(addr++,low);
+}
+
+void loadCompassOffset()
+{
+    byte high,low;
+    uint addr = CompassStorageAddr;
+    LSM303::vector<int> Offset;
+
+    Wire.begin();
+    compass.init();
+    compass.enableDefault();
+
+    high = EEPROM.read(addr++);
+    low  = EEPROM.read(addr++);
+    Offset.x = (int)high << 8 | low;
+    high = EEPROM.read(addr++);
+    low  = EEPROM.read(addr++);
+    Offset.y = (int)high << 8 | low;
+    high = EEPROM.read(addr++);
+    low  = EEPROM.read(addr++);
+    Offset.z = (int)high << 8 | low;
+
+    compass.setOffset(Offset.x,Offset.y,Offset.z);
+}
+
+//è®¾ç½®æ¯”èµ›åœºåœ°xè½´æ–¹å‘çš„ç£è§’åº¦ï¼Œéœ€è¦åœ¨æ­¤ä¹‹å‰åˆå§‹åŒ–ç½—ç›˜ã€‚
+void setXAxisMagDir(void)
+{
+    CircleQueue_Avg<float> heading;
+
+    for(int i = 0;i < 10;++i)
+    {
+        compass.read();
+        heading.push(compass.heading());
+        delay(100);
+    }
+
+    xAxisMagDir = heading.avg();
+
+    flashLED();
+}
+
+void flashLED(uint time)
+{
+    pinMode(13,OUTPUT);
+
+    for(int i = 0;i < 3;++i)
+    {
+        digitalWrite(13,HIGH);
+        delay(time);
+        digitalWrite(13,LOW);
+        delay(time);
+    }
+}
+
+inline float checkDistance(float dis)
+{
+    if(dis > MaxDistance || dis < MinDistance)
+        return 0.0;
+    else
+        return dis;
+}
+
+Position<float> getCurPosInfo(void)
+{
+    float xAxis1,xAxis2,yAxis1,yAxis2,x,y;
+    float angle;
+    Position<float> pos;
+
+    /*xAxis1 = checkDistance(xAxisUS1.getDistance());
+    xAxis2 = checkDistance(xAxisUS2.getDistance());
+    yAxis1 = checkDistance(yAxisUS1.getDistance());
+    yAxis2 = checkDistance(yAxisUS2.getDistance());*/
+
+    xAxis1 = xAxisUS1.getDistance();
+    xAxis2 = xAxisUS2.getDistance();
+    yAxis1 = yAxisUS1.getDistance();
+    yAxis2 = yAxisUS2.getDistance();
+    angle = getAngle2xAxis();
+
+    x = xAxis1 + xAxis2 + SelfDiameter;
+    y = yAxis1 + yAxis2 + SelfDiameter;
+
+    x *= fabs(sin(degree2radian(angle)));
+    y *= fabs(cos(degree2radian(angle)));
+
+    //if(angle )
+}
+
+float getAngle2Ball(void)
+{
+    return eye.getMinDir() + eye.degreesPerEye();
+}
+
+float getAngle2xAxis(void)
+{
+    compass.read();
+    return compass.heading() - xAxisMagDir;
 }

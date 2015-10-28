@@ -104,6 +104,11 @@ public:
         }
         Serial.print("\n");
     }
+
+    inline uint degreesPerEye(void) const
+    {
+        return this -> degreePerEye;
+    }
 };
 
 #endif // __IR_EYE_H__
