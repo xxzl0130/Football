@@ -102,9 +102,9 @@ public:
 template <typename T>
 class DC_MotorPair
 {
-private:
-    T left,right;
 public:
+    T left,right;
+
     DC_MotorPair(T a,T b):left(a),right(b)
     {
         //使用传入的DC_Motor_EN对象（或其基类DC_Motor对象）初始化
@@ -144,9 +144,9 @@ public:
 template <typename T>
 class DC_MotorVerticalSquare
 {
-private:
-    DC_MotorPair<T> xAxis,yAxis;
 public:
+    DC_MotorPair<T> xAxis,yAxis;
+
     DC_MotorVerticalSquare(DC_MotorPair<T> x,DC_MotorPair<T> y):xAxis(x),yAxis(y)
     {
     }

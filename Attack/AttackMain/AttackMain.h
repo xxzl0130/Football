@@ -36,11 +36,14 @@
 #define BlankWidth              30
 #define SelfDiameter            24.5
 //场地尺寸
-#define ColorStorageAddr    0
-#define ColorStorageOffset  (4*4*2)
-#define CompassStorageAddr  (ColorStorageAddr + ColorStorageOffset)
-#define CompassStorageOffset (3*2)
+#define ColorStorageAddr        0
+#define ColorStorageOffset      (4*4*2)
+#define CompassStorageAddr      (ColorStorageAddr + ColorStorageOffset)
+#define CompassStorageOffset    (3*2)
 //EEPROM存储地址信息
+#define KeyPinSt                35
+#define KeyPinCnt               7
+#define IntKey                  3
 
 #define degree2radian(angle) ((angle) / 180.0 * M_PI)
 
@@ -74,13 +77,17 @@ struct Position{
 
 void presetColor(void);
 void loadPresetColor(void);
+void adjustColor(uchr);
 void setCompassOffset(void);
 void loadCompassOffset(void);
 void setXAxisMagDir(void);
+void preset(void);
+void keyInterrupt(void);
 //for preset
 
+inline bool keyPressed(uint8_t pin,uint8_t mode = HIGH);
 void flashLED(uint time = 200);
-inline float checkDistance(float dis);
+inline float checkDistance(float);
 
 Position<float> getCurPosInfo(void);
 float getAngle2Ball(void);

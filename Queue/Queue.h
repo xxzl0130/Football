@@ -2,6 +2,7 @@
 #define __QUEUE_H__
 
 #include<stdlib.h>
+#include<string.h>
 
 template<typename T>
 struct QueueNode
@@ -93,11 +94,12 @@ public:
     {
         dataPtr = new T[n];
         pos = 0;
+        memset(dataPtr,0,n * sizeof(T));
     }
 
     void push(T t)
     {
-        dataPtr[pos] = t;
+        *(dataPtr + pos) = t;
         pos = (pos + 1) % cnt;
     }
 
@@ -113,16 +115,17 @@ public:
 };
 
 template<typename T>
-class CircleQueue_Avg:protected CircleQueue<T>
+class CircleQueue_Avg
 {
 protected:
     unsigned int cnt,pos;
     T *dataPtr;
     T Avg;
 public:
-    CircleQueue_Avg(unsigned int n = 8):CircleQueue<T>(n)
+    CircleQueue_Avg(unsigned int n = 8):pos(0),cnt(n),Avg(0)
     {
-        Avg = T(0);
+        dataPtr = new T[n];
+        memset(dataPtr,0,n * sizeof(T));
     }
 
     T front()
@@ -138,7 +141,7 @@ public:
     void push(T t)
     {
         Avg -= back();
-        dataPtr[pos] = t;
+        *(dataPtr + pos) = t;
         pos = (pos + 1) % cnt;
         Avg += t;
     }

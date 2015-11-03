@@ -175,7 +175,7 @@ public:
     }
 
     void enableDefault(void);
-    void setOffset(int16_t xoffset = 0,int16_t yoffset = 0,int16_t zoffset = 0);
+    void setOffset(int16_t,int16_t,int16_t);
 
     void writeAccReg(byte reg, byte value);
     byte readAccReg(byte reg);
