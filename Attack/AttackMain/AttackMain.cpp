@@ -1,16 +1,11 @@
 #include "AttackMain.h"
 #include <arduino.h>
 
-#define DEBUG
-#ifdef DEBUG
-#define debugSerial Serial
-#endif // DEBUG
-
 LSM303          compass;
 IR_Eye          eye(A0,10,360);
 
-DC_MotorVerticalSquare<DC_Motor_EN> motor(DC_MotorPair<DC_Motor_EN>(DC_Motor_EN(4,5,22),DC_Motor_EN(6,7,23)),
-        DC_MotorPair<DC_Motor_EN>(DC_Motor_EN(8,9,24),DC_Motor_EN(10,11,25)));
+DC_MotorVerticalSquare<DC_Motor_EN> motor(DC_MotorPair<DC_Motor_EN>(DC_Motor_EN(4,5,21),DC_Motor_EN(6,7,22)),
+        DC_MotorPair<DC_Motor_EN>(DC_Motor_EN(8,9,23),DC_Motor_EN(10,11,24)));
 
 US_Distance     xAxisUS1(26,27);
 US_Distance     xAxisUS2(28,29);
@@ -47,7 +42,7 @@ void presetColor()
 
     do
     {
-        motor.xAxisRun(FORWORD,80);
+        motor.xAxis.run(FORWORD,80);
         delay(40);
     }
     while(abs(color[0][0] - xAxisGray1.smoothRead()) <= ColorThreshold ||
@@ -76,7 +71,7 @@ void presetColor()
 
     do
     {
-        motor.xAxisRun(FORWORD,80);
+        motor.xAxis.run(FORWORD,80);
         delay(40);
     }
     while(abs(color[0][1] - xAxisGray1.smoothRead()) <= ColorThreshold ||
@@ -105,7 +100,7 @@ void presetColor()
 
     do
     {
-        motor.xAxisRun(BACKWORD,80);
+        motor.xAxisrun(BACKWORD,80);
         delay(40);
     }
     while(abs(color[0][1] - xAxisGray1.smoothRead()) > ColorThreshold ||
@@ -208,7 +203,7 @@ void setCompassOffset()
     motor.rotateRun(FORWORD, 64);
     delay(200);
 
-    for(int i = 0; i < 10000; ++i)
+    for(int i = 0; i < 500; ++i)
     {
         compass.read();
 
@@ -244,6 +239,8 @@ void setCompassOffset()
     EEPROM.write(addr++,low);
 
     compass.setOffset(Offset.x,Offset.y,Offset.z);
+
+    motor.stop();
 
 #ifdef DEBUG
     debugSerial.print("Compass Offset:");

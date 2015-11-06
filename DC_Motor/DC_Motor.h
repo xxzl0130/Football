@@ -11,9 +11,17 @@
 #define SPEED_MAX 255
 #define SPEED_MIN 0
 
+#define degree2radian(angle) ((angle) / 180.0 * M_PI)
+
 enum Direction
 {
     FORWORD = 0,BACKWORD
+};
+
+struct pairSpeed
+{
+    uchr xSpeed,ySpeed;
+    Direction xDir,yDir;
 };
 
 class DC_Motor
@@ -58,7 +66,7 @@ public:
 
     void speedUp(int plusSpeed)
     {
-        if(currentSpeed + plusSpeed < SPEED_MAX)
+        if((int)currentSpeed + plusSpeed > SPEED_MAX)
         {
             currentSpeed = SPEED_MAX;
         }
@@ -151,26 +159,55 @@ public:
     {
     }
 
-    inline void xAxisRun(Direction Dir,uchr Speed)
-    {
-        xAxis.run(Dir,Speed);
-    }
-
-    inline void yAxisRun(Direction Dir,uchr Speed)
-    {
-
-        yAxis.run(Dir,Speed);
-    }
-
-    inline void angleRun(float Angle,uchr Speed)
+    inline pairSpeed angleRunSpeed(float &angle,uchr &speed)
     {
         float xAxisSpeed,yAxisSpeed;
+        pairSpeed speedRet;
 
-        xAxisSpeed = cos(Angle);
-        yAxisSpeed = sin(Angle);
+        xAxisSpeed = cos(degree2radian(angle));
+        yAxisSpeed = sin(degree2radian(angle));
 
-        xAxis.Run(xAxisSpeed > 0 ? FORWORD : BACKWORD,(uchr)fabs(Speed * xAxisSpeed));
-        yAxis.Run(yAxisSpeed > 0 ? FORWORD : BACKWORD,(uchr)fabs(Speed * yAxisSpeed));
+        speedRet.xDir = xAxisSpeed >= 0.0 ? FORWORD : BACKWORD;
+        speedRet.yDir = yAxisSpeed >= 0.0 ? FORWORD : BACKWORD;
+
+        xAxisSpeed = fabs(xAxisSpeed);
+        yAxisSpeed = fabs(yAxisSpeed);
+
+        if(xAxisSpeed >= yAxisSpeed)
+        {
+            yAxisSpeed /= xAxisSpeed;
+            xAxisSpeed = 1.0;
+        }
+        else
+        {
+            xAxisSpeed /= yAxisSpeed;
+            yAxisSpeed = 1.0;
+        }
+
+        speedRet.xSpeed = speed * xAxisSpeed;
+        speedRet.ySpeed = speed * yAxisSpeed;
+
+        return speedRet;
+    }
+
+    inline void angleRun(float angle,uchr speed)
+    {
+        pairSpeed spd;
+
+        spd = angleRunSpeed(angle,speed);
+#ifdef DEBUG
+        debugSerial.println(xAxisSpeed);
+        debugSerial.println(yAxisSpeed);
+#endif //DEBUG
+
+        xAxis.run(spd.xDir,spd.xSpeed);
+        yAxis.run(spd.yDir,spd.ySpeed);
+    }
+
+    inline void speedUp(int xPlusSpeed,int yPlusSpeed)
+    {
+        xAxis.speedUp(xPlusSpeed);
+        yAxis.speedUp(yPlusSpeed);
     }
 
     inline void stop()
@@ -179,10 +216,29 @@ public:
         yAxis.stop();
     }
 
-    inline void rotateRun(Direction Dir,uchr Speed)
+    inline void rotateRun(Direction dir,uchr speed)
     {
-        xAxis.rotateRun(Dir,Speed);
-        yAxis.rotateRun(Dir,Speed);
+        xAxis.rotateRun(dir,speed);
+        yAxis.rotateRun(dir,speed);
+    }
+
+    inline void reverse()
+    {
+        xAxis.reverse();
+        yAxis.reverse();
+    }
+
+    inline void run(float angle,uchr speed,uchr omega,Direction dir)
+    {
+        angleRun(angle,speed);
+        if(dir == FORWORD)
+        {
+            speedUp(omega,-omega);
+        }
+        else
+        {
+            speedUp(-omega,omega);
+        }
     }
 };
 

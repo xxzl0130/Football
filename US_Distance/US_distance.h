@@ -1,7 +1,7 @@
 #ifndef __US_DISTANCE_H__
 #define __US_DISTANCE_H__
 
-#include "arduino.h"
+#include <arduino.h>
 
 #ifndef uchr
 #define uchr unsigned char
@@ -27,7 +27,16 @@ public:
         digitalWrite(trigPin,HIGH);
         delayMicroseconds(11);
         digitalWrite(trigPin,LOW);
+#ifdef DEBUG
+        Dis = pulseIn(echoPin,HIGH);
+        debugSerial.print("Time:");
+        debugSerial.print(Dis);
+        debugSerial.print("\t\tDis:");
+        Dis /= 58.0;
+        debugSerial.println(Dis);
+#else
         Dis = pulseIn(echoPin,HIGH) / 58.0;
+#endif // DEBUG
 
         return Dis;
     }

@@ -59,6 +59,23 @@ public:
         return no;
     }
 
+    uchr getMinNo(uint *arr)
+    {
+        uint Min = INT_MAX;
+        uchr no = 0;
+
+        for(uchr i = 0;i < cntEye;++i)
+        {
+            if(arr[i] < Min)
+            {
+                Min = arr[i];
+                no = i;
+            }
+        }
+
+        return no;
+    }
+
 /******************************
 函数名称：getMinDir
 函数功能：读取所有通道并计算值最小的通道所对应的角度
@@ -68,6 +85,11 @@ public:
     uchr getMinDir()
     {
         return degreePerEye * getMinNo();
+    }
+
+    uchr getMinDir(uint *arr)
+    {
+        return degreePerEye * getMinNo(arr);
     }
 
 /******************************
@@ -92,17 +114,14 @@ public:
 ******************************/
     void printAll2Ser()
     {
-        while(!Serial)
-        {
-            Serial.begin(9600);
-        }
-
+#ifdef debugSerial
         for(uchr i = 0;i < cntEye;++i)
         {
-            Serial.print(analogRead(sPin + i));
-            Serial.print(" | ");
+            debugSerial.print(analogRead(sPin + i));
+            debugSerial.print(" | ");
         }
-        Serial.print("\n");
+        debugSerial.print("\n");
+#endif // debugSerial
     }
 
     inline uint degreesPerEye(void) const
