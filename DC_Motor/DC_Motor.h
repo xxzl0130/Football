@@ -196,8 +196,6 @@ public:
 
         spd = angleRunSpeed(angle,speed);
 #ifdef DEBUG
-        debugSerial.println(xAxisSpeed);
-        debugSerial.println(yAxisSpeed);
 #endif //DEBUG
 
         xAxis.run(spd.xDir,spd.xSpeed);

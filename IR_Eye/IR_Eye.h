@@ -3,6 +3,7 @@
 
 #include "arduino.h"
 #include "limits.h"
+#include "string.h"
 
 #ifndef uchr
 #define uchr unsigned char
@@ -18,8 +19,11 @@ private:
     /**起始通道的接口，其余顺延**/
     uchr cntEye;
     /**复眼数目**/
-    uint degreePerEye;
+    uchr degreePerEye;
     /**每只眼对应的角度**/
+    uint environIR;
+    /**环境光干扰**/
+    uint *value;
 
 public:
     IR_Eye(uchr Pin = A0,uchr Cnt = 6,uint Angel = 180)
@@ -33,77 +37,9 @@ public:
         }
 
         degreePerEye = Angel / (cntEye - 1);
-    }
 
-/******************************
-函数名称：getMinNo
-函数功能：读取所有通道并返回值最小的通道编号
-传入参数：无
-返回值：返回值最小的通道编号
-******************************/
-    uchr getMinNo()
-    {
-        uint Min = INT_MAX, tmp;
-        uchr no = 0;
-
-        for(uchr i = 0;i < cntEye;++i)
-        {
-            tmp = analogRead(sPin + i);
-            if(tmp < Min)
-            {
-                Min = tmp;
-                no = i;
-            }
-        }
-
-        return no;
-    }
-
-    uchr getMinNo(uint *arr)
-    {
-        uint Min = INT_MAX;
-        uchr no = 0;
-
-        for(uchr i = 0;i < cntEye;++i)
-        {
-            if(arr[i] < Min)
-            {
-                Min = arr[i];
-                no = i;
-            }
-        }
-
-        return no;
-    }
-
-/******************************
-函数名称：getMinDir
-函数功能：读取所有通道并计算值最小的通道所对应的角度
-传入参数：无
-返回值：值最小的通道所对应的角度
-******************************/
-    uchr getMinDir()
-    {
-        return degreePerEye * getMinNo();
-    }
-
-    uchr getMinDir(uint *arr)
-    {
-        return degreePerEye * getMinNo(arr);
-    }
-
-/******************************
-函数名称：getAllValue
-函数功能：读取所有通道的值
-传入参数：用于存放数据的数组指针*arr
-返回值：无
-******************************/
-    void getAllValue(uint *arr)
-    {
-        for(uchr i = 0;i < cntEye;++i)
-        {
-            arr[i] = analogRead(sPin + i);
-        }
+        value = new uint[cnt];
+        memset(value,0,sizeof(uint) * cnt);
     }
 
 /******************************
@@ -112,22 +48,49 @@ public:
 传入参数：无
 返回值：无
 ******************************/
-    void printAll2Ser()
-    {
-#ifdef debugSerial
-        for(uchr i = 0;i < cntEye;++i)
-        {
-            debugSerial.print(analogRead(sPin + i));
-            debugSerial.print(" | ");
-        }
-        debugSerial.print("\n");
-#endif // debugSerial
-    }
+#ifdef DEBUG
+    void printAll2Ser();
+#endif
 
-    inline uint degreesPerEye(void) const
-    {
-        return this -> degreePerEye;
-    }
+/******************************
+函数名称：getMinNo
+函数功能：读取所有通道并返回值最小的通道编号
+传入参数：无
+返回值：返回值最小的通道编号
+******************************/
+    uchr getMinNo(void);
+    uchr getMinNo(uint *arr);
+
+/******************************
+函数名称：getMinDir
+函数功能：读取所有通道并计算值最小的通道所对应的角度
+传入参数：无
+返回值：值最小的通道所对应的角度
+******************************/
+    uint getMinDir(void);
+    uchr getMinDir(uint *arr);
+
+/******************************
+函数名称：getAllValue
+函数功能：读取所有通道的值
+传入参数：用于存放数据的数组指针*arr
+返回值：无
+******************************/
+    uint* getAllValue(uint *arr);
+    inline uint* getAllValue(void);
+
+/******************************
+函数名称：getMinValue
+函数功能：读取所有通道并返回值最小的值
+传入参数：无
+返回值：无
+******************************/
+    uint getMinValue(void);
+
+    inline uint degreesPerEye(void) const;
+    inline uint getEnvironIR(void) const;
+    inline uint getCntEye(void) const;
+    inline void setEnvironIR(uint IR);
 };
 
 #endif // __IR_EYE_H__

@@ -100,7 +100,7 @@ void presetColor()
 
     do
     {
-        motor.xAxisrun(BACKWORD,80);
+        motor.xAxis.run(BACKWORD,80);
         delay(40);
     }
     while(abs(color[0][1] - xAxisGray1.smoothRead()) > ColorThreshold ||
@@ -112,7 +112,7 @@ void presetColor()
     //退回到第二个色块
     do
     {
-        motor.yAxisRun(FORWORD,80);
+        motor.yAxis.run(FORWORD,80);
         delay(40);
     }
     while(abs(color[0][1] - xAxisGray1.smoothRead()) <= ColorThreshold ||
@@ -347,7 +347,7 @@ Position<float> getCurPosInfo(void)
 
 float getAngle2Ball(void)
 {
-    return eye.getMinDir() + eye.degreesPerEye();
+    return eye.getMinDir() + 45.0;
 }
 
 float getAngle2xAxis(void)
@@ -367,14 +367,6 @@ inline bool keyPressed(uint8_t pin,uint8_t mode)
         }
     }
     return false;
-}
-
-void keyInterrupt(void)
-{
-    if(keyPressed(IntKey))
-    {
-        preset();
-    }
 }
 
 void preset(void)
@@ -461,7 +453,12 @@ void preset(void)
 void adjustColor(uchr no)
 {
     uint color[4];
+    static Queue_Avg<uint> avg[4][4];
+    static Queue_Avg<uint> IR;
+    //用于在场地多个位置多次测量求平均值
 
+    IR.push(avg(eye.getAllValue(IR),eye.getCntEye()));
+    //顺带同时测环境光
     for(uchr i = 0; i < 10; ++i)
     {
         xAxisGray1.smoothRead();
@@ -477,11 +474,19 @@ void adjustColor(uchr no)
     color[2] = yAxisGray1.smoothRead();
     color[3] = yAxisGray2.smoothRead();
 
-    xAxisGray1.setColor(no,color[0]);
-    xAxisGray2.setColor(no,color[1]);
-    yAxisGray1.setColor(no,color[2]);
-    yAxisGray2.setColor(no,color[3]);
+    for(uchr i = 0;i < 4;++i)
+    {
+        avg[i][no].push(color[i]);
+    }
 
+    xAxisGray1.setColor(no,avg[0][no].avg());
+    xAxisGray2.setColor(no,avg[1][no].avg());
+    yAxisGray1.setColor(no,avg[2][no].avg());
+    yAxisGray2.setColor(no,avg[3][no].avg());
+
+    IR.push(avg(eye.getAllValue(IR),eye.getCntEye()));
+    //顺带同时测环境光
+    eye.setEnvironIR(IR.avg());
 #ifdef DEBUG
     debugSerial.print("Adjust Color No.");
     debugSerial.print(no);
@@ -496,4 +501,20 @@ void adjustColor(uchr no)
     }
     debugSerial.print("\n");
 #endif // DEBUG
+}
+
+
+template <typename T>
+T sum(T *arr,uint n)
+{
+    T s = T(0);
+    for(uint i = 0;i < n;++i)
+        s += arr[i];
+    return s;
+}
+
+template <typename T>
+T avg(T *arr,uint n)
+{
+    return T(sum(arr,n) / T(n));
 }

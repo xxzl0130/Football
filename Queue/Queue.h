@@ -90,10 +90,9 @@ protected:
     unsigned int cnt,pos;
     T *dataPtr;
 public:
-    CircleQueue(unsigned int n):cnt(n)
+    CircleQueue(unsigned int n):cnt(n),pos(0)
     {
         dataPtr = new T[n];
-        pos = 0;
         memset(dataPtr,0,n * sizeof(T));
     }
 
@@ -115,42 +114,54 @@ public:
 };
 
 template<typename T>
-class CircleQueue_Avg
+class CircleQueue_Avg:protected CircleQueue<T>
 {
 protected:
-    unsigned int cnt,pos;
-    T *dataPtr;
     T Avg;
 public:
-    CircleQueue_Avg(unsigned int n = 8):pos(0),cnt(n),Avg(0)
+    CircleQueue_Avg(unsigned int n = 8):CircleQueue<T>(n),Avg(0)
     {
-        dataPtr = new T[n];
-        memset(dataPtr,0,n * sizeof(T));
-    }
-
-    T front()
-    {
-        return dataPtr[(pos + cnt - 1) % cnt];
-    }
-
-    T back()
-    {
-        return dataPtr[pos];
     }
 
     void push(T t)
     {
-        Avg -= back();
-        *(dataPtr + pos) = t;
-        pos = (pos + 1) % cnt;
+        Avg -= CircleQueue<T>::back();
+        CircleQueue<T>::push(t);
         Avg += t;
     }
 
     T avg()
     {
-        return Avg / cnt;
+        return Avg / CircleQueue<T>::cnt;
     }
 };
 
+template<typename T>
+class Queue_Avg:protected Queue<T>
+{
+protected:
+    T Avg;
+public:
+    Queue_Avg():Queue<T>(),Avg(0)
+    {
+    }
+
+    bool push(T t)
+    {
+        Avg += t;
+        return Queue<T>::push(t);
+    }
+
+    void pop()
+    {
+        Avg -= Queue<T>::back();
+        Queue<T>::pop();
+    }
+
+    T avg()
+    {
+        return Avg / Queue<T>::cnt;
+    }
+};
 
 #endif // __QUEUE_H__

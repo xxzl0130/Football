@@ -13,7 +13,7 @@
 #endif
 
 #ifndef ColorThreshold
-#define ColorThreshold      20
+#define ColorThreshold      8
 #endif
 
 class AnalogGray{

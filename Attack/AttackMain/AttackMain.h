@@ -82,7 +82,6 @@ void setCompassOffset(void);
 void loadCompassOffset(void);
 void setXAxisMagDir(void);
 void preset(void);
-void keyInterrupt(void);
 //for preset
 
 inline bool keyPressed(uint8_t pin,uint8_t mode = HIGH);
@@ -94,4 +93,9 @@ float getAngle2Ball(void);
 float getAngle2Gate(void);
 float getAngle2xAxis(void);
 void process(void);
+
+template <typename T>
+T avg(T *arr,uint n);
+template <typename T>
+T sum(T *arr,uint n);
 #endif // __ATTACK_MAIN_H__

@@ -16,7 +16,7 @@ void setup()
     MsTimer2::set((unsigned long)1000 / FLASH_FREQUENCE,process);
     MsTimer2::start();
 
-    attachInterrupt(1,HIGH,preset);
+    preset();
 }
 
 void loop()
