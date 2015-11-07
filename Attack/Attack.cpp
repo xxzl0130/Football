@@ -1,11 +1,11 @@
 /*
- doing:调整defend
- todo:调整search chase attack  位置信息
+ doing:调整chaseBall
+ todo:调整sttack  位置信息
  */
 
 
 #define DEBUG
-#define debugSerial Serial1
+#define debugSerial Serial
 
 #include <AttackMain.h>
 #include "LSM303.h"
@@ -29,7 +29,7 @@ void move(void);
 void attack(void);
 void defend(void);
 void search(void);
-void chaseBall(void);
+bool chaseBall(void);
 bool isBall(void);
 
 void setup()
@@ -37,9 +37,6 @@ void setup()
     Wire.begin();
     compass.init();
     compass.enableDefault();
-
-    //MsTimer2::set((uint)1000 / FLASH_FREQUENCE,chaseBall);
-    //MsTimer2::start();
 
     //pinMode(3,INPUT);
 
@@ -50,39 +47,39 @@ void setup()
     loadCompassOffset();
     loadPresetColor();
     preset();
+
+    /*MsTimer2::set((uint)1000 / FLASH_FREQUENCE,move);
+    MsTimer2::start();*/
 }
 
 void loop()
 {
-    while(!keyPressed(KeyPinSt + 7));
-    defend();
-    /*debugSerial.println(judgeArea());
-    delay(500);*/
+    //chaseBall();
+    //move();
+    chaseBall();
+    delay(100);
 }
 
 bool isBall(void)
 {
     eye.getAllValue(value);
-    return abs(eye.getMinValue(value) - eye.environIR) >= 16;
+    return eye.getMinValue(value) < eye.environIR - 16;
 }
 
 void move(void)
 {
     float angle;
+    static  unsigned long searchTime;
+    bool searchFlag = false;
 
-    eye.getAllValue(value);
-    if(!isBall())
+    if(isBall())
     {
-        search();
-    }
-    else if(1)
-    {
-        //通过复眼对球位置判断和自身位置判断决定是进攻还是防守
-        attack();
+        defend();
     }
     else
     {
-        defend();
+        //通过复眼对球位置判断和自身位置判断决定是进攻还是防守
+        attack();
     }
 }
 
@@ -93,10 +90,10 @@ void search(void)
 
     while(abs(eye.getMinValue(value) - eye.environIR) < 10)
     {
-        motor.xAxis.run(FORWORD,192);
-        motor.yAxis.rotateRun(FORWORD,255);
+        motor.xAxis.run(FORWORD,255);
+        motor.yAxis.rotateRun(FORWORD,192);
         //在场地画圆寻找球
-        if(millis() - time > 5000)//5s后搜寻超时
+        if(millis() - time > 2000)//2s后搜寻超时
         {
             defend();//回防
             return;
@@ -105,88 +102,39 @@ void search(void)
 
     delay(50);
     motor.stop();
-
-    while(fabs((angle = getAngle2Ball()) - 45.0) > 10.0)
-    {
-        if(angle <= 180.0)
-        {
-            motor.rotateRun(FORWORD,128);
-        }
-        else
-        {
-            motor.rotateRun(BACKWORD,128);
-        }
-    }
-    delay(100);
-    motor.stop();
     anglePID.reset();
     chaseBall();
 }
 
-void chaseBall(void)
+bool chaseBall(void)
 {
     static uchr flag = 0;
-    angle = getAngle2Ball();
-    if(flag)
-    {
-        motor.angleRun(angle,speed);
-    }
-    else
-    {
-        omega = max(abs(anglePID.Update(angle - 45.0,angle)),SPEED_MAX);
-        if(angle <= 180.0)
+    //0 for xAxis,1 for yAxis.
+    eye.getAllValue(value);
+    eye.printAll2Ser(value);
+    angle = getAngle2Ball(value);
+    if(eye.getMinValue(value) < 128 && eye.getMinValue(value) > 64 && eye.getMinNo(value) != 0)
+    {//较近距离
+        /*if(angle > 45.0 && angle < 230.0)
         {
-            if(motor.xAxis.right.getCurrentDir() == FORWORD)
-            {
-                motor.xAxis.right.run(FORWORD,omega);
-                motor.xAxis.left.stop();
-            }
-            else
-            {
-                motor.xAxis.left.run(FORWORD,omega);
-                motor.xAxis.right.stop();
-            }
-            if(motor.yAxis.left.getCurrentDir() == FORWORD)
-            {
-                motor.yAxis.left.run(FORWORD,omega);
-                motor.yAxis.right.stop();
-            }
-            else
-            {
-                motor.yAxis.right.run(FORWORD,omega);
-                motor.yAxis.left.stop();
-            }
+            motor.rotateRun(FORWORD,127);
         }
         else
         {
-            if(motor.xAxis.right.getCurrentDir() == BACKWORD)
-            {
-                motor.xAxis.right.run(BACKWORD,omega);
-                motor.xAxis.left.stop();
-            }
-            else
-            {
-                motor.xAxis.left.run(BACKWORD,omega);
-                motor.xAxis.right.stop();
-            }
-            if(motor.yAxis.left.getCurrentDir() == BACKWORD)
-            {
-                motor.yAxis.left.run(BACKWORD,omega);
-                motor.yAxis.right.stop();
-            }
-            else
-            {
-                motor.yAxis.right.run(BACKWORD,omega);
-                motor.yAxis.left.stop();
-            }
-        }
+            motor.rotateRun(BACKWORD,127);
+        }*/
+        motor.rotateRun(FORWORD,100);
+        return true;
     }
-    flag ^= 1;
-
+    else
+    {
+        motor.angleRun(angle,255);
+        return false;
+    }
 #ifdef DEBUG
-    debugSerial.print(angle);
-    debugSerial.print("  ");
-    debugSerial.println(omega);
+    debugSerial.println(angle);
+    /*debugSerial.print("  ");
+    debugSerial.println(omega);*/
 #endif
 }
 
@@ -213,8 +161,8 @@ void defend()
         }
         motor.rotateRun(dir,128);
 #ifdef DEBUG
-        debugSerial.print(omega);
-        debugSerial.print(" ");
+        /*debugSerial.print(omega);
+        debugSerial.print(" ");*/
         debugSerial.println(angle);
 #endif
     }
@@ -231,13 +179,16 @@ void defend()
     {
         dir = BACKWORD;
     }
-
-    while(fabs(xAxisUS2.getDistance() - xAxisUS1.getDistance()) > 3.0)
+#ifdef DEBUG
+    debugSerial.println(xAxisUS2.getDistance());
+    debugSerial.println(xAxisUS2.getDistance());
+#endif
+    while(judgeArea() != 1)
     {
         motor.xAxis.run(dir,128);
     }
     motor.stop();
-    while(yAxisUS1.getDistance() > 20.0)
+    while(!(yAxisGray2.color() == 1 && yAxisGray1.color() == 3) && yAxisUS1.getDistance() > 20.0)
     {
         motor.yAxis.run(BACKWORD,128);
     }
@@ -246,5 +197,5 @@ void defend()
 
 void attack()
 {
-
+    chaseBall();
 }

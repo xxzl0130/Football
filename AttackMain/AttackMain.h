@@ -90,7 +90,9 @@ bool keyPressed(uchr pin,uchr mode = HIGH);
 void flashLED(uint time = 200);
 float checkDistance(float);
 uchr judgeArea(void);
+bool inArea(uchr);
 float getAngle2Ball(void);
+float getAngle2Ball(uint *arr);
 float getAngle2Gate(void);
 float getAngle2xAxis(void);
 

@@ -83,10 +83,6 @@ public:
     uchr color()
     {
         int val = read();
-#ifdef DEBUG
-        debugSerial.print(val);
-        debugSerial.print(" | ");
-#endif
         for(uchr i = 0; i < cntColor; ++i)
         {
             if(abs(val - colorPtr[i]) <= ColorThreshold)

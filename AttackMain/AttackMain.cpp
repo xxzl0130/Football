@@ -16,9 +16,9 @@ US_Distance     xAxisUS2(28,29);
 US_Distance     yAxisUS1(32,33);
 US_Distance     yAxisUS2(26,27);
 
-AnalogGray_Color      xAxisGray1(A10,4);
-AnalogGray_Color      xAxisGray2(A11,4);
-AnalogGray_Color      yAxisGray1(A12,4);
+AnalogGray_Color      xAxisGray1(A11,4);
+AnalogGray_Color      xAxisGray2(A12,4);
+AnalogGray_Color      yAxisGray1(A10,4);
 AnalogGray_Color      yAxisGray2(A13,4);
 
 float xAxisMagDir = 0.0;
@@ -298,8 +298,6 @@ void setXAxisMagDir(void)
 
     xAxisMagDir = heading.avg();
 
-    flashLED();
-
 #ifdef DEBUG
     debugSerial.print("xAxis Mag Dir:");
     debugSerial.println(xAxisMagDir);
@@ -330,6 +328,11 @@ inline float checkDistance(float dis)
 float getAngle2Ball(void)
 {
     return eye.getMinDir() + 45.0;
+}
+
+float getAngle2Ball(uint *arr)
+{
+    return eye.getMinDir(arr) + 45.0;
 }
 
 float getAngle2xAxis(void)
@@ -388,7 +391,7 @@ uchr judgeArea(void)
         return 0xff;
     }
 
-    for(t = i = 0;i < 4;++i)
+    for(t = i = 0; i < 4; ++i)
     {
         if(area[i] > t)
         {
@@ -397,6 +400,29 @@ uchr judgeArea(void)
         }
     }
     return j;
+}
+
+bool inArea(uchr no)
+{
+    uchr area[4] = {0},t;
+
+    if((t = xAxisGray1.color()) != 0xff)
+    {
+        ++area[t];
+    }
+    if((t = xAxisGray2.color()) != 0xff)
+    {
+        ++area[t];
+    }
+    if((t = yAxisGray1.color()) != 0xff)
+    {
+        ++area[t];
+    }
+    if((t = yAxisGray2.color()) != 0xff)
+    {
+        ++area[t];
+    }
+    return area[no] != 0;
 }
 
 void preset(void)
@@ -410,70 +436,41 @@ void preset(void)
     }
     while(1)
     {
-        if(digitalRead(KeyPinSt) == HIGH)
+        if(keyPressed(KeyPinSt))
         {
-            delay(10);
-            if(digitalRead(KeyPinSt) == HIGH)
-            {
-                adjustColor(0);
-                flashLED();
-            }
+            adjustColor(0);
+            flashLED();
         }
-        else if(digitalRead(KeyPinSt + 1) == HIGH)
+        else if(keyPressed(KeyPinSt + 1))
         {
-            delay(10);
-            if(digitalRead(KeyPinSt + 1) == HIGH)
-            {
-                adjustColor(1);
-                flashLED();
-            }
+            adjustColor(1);
+            flashLED();
         }
-        else if(digitalRead(KeyPinSt + 2) == HIGH)
+        else if(keyPressed(KeyPinSt + 2))
         {
-            delay(10);
-            if(digitalRead(KeyPinSt + 2) == HIGH)
-            {
-                adjustColor(2);
-                flashLED();
-            }
+            adjustColor(2);
+            flashLED();
         }
-        else if(digitalRead(KeyPinSt + 3) == HIGH)
+        else if(keyPressed(KeyPinSt + 3))
         {
-            delay(10);
-            if(digitalRead(KeyPinSt + 3) == HIGH)
-            {
-                adjustColor(3);
-                flashLED();
-            }
+            adjustColor(3);
+            flashLED();
         }
-        else if(digitalRead(KeyPinSt + 4) == HIGH)
+        else if(keyPressed(KeyPinSt + 4))
         {
-            //1键对应校准磁场
-            delay(10);
-            if(digitalRead(KeyPinSt + 4) == HIGH)
-            {
-                setCompassOffset();
-                flashLED();
-            }
+            setCompassOffset();
+            flashLED();
         }
-        else if(digitalRead(KeyPinSt + 5) == HIGH)
+        else if(keyPressed(KeyPinSt + 5))
         {
-            delay(10);
-            if(digitalRead(KeyPinSt + 5) == HIGH)
-            {
-                setXAxisMagDir();
-                flashLED();
-            }
+            setXAxisMagDir();
+            flashLED();
         }
-        else if(digitalRead(KeyPinSt + 6) == HIGH)
+        else if(keyPressed(KeyPinSt + 6))
         {
-            //结束键
-            delay(10);
-            if(digitalRead(KeyPinSt + 6) == HIGH)
-            {
-                Serial.println("End preset.");
-                break;
-            }
+            Serial.println("End preset.");
+            flashLED();
+            break;
         }
     }
 #ifdef DEBUG
@@ -505,7 +502,7 @@ void adjustColor(uchr no)
     color[2] = yAxisGray1.smoothRead();
     color[3] = yAxisGray2.smoothRead();
 
-    for(uchr i = 0;i < 4;++i)
+    for(uchr i = 0; i < 4; ++i)
     {
         avg[i][no].push(color[i]);
     }
@@ -522,7 +519,7 @@ void adjustColor(uchr no)
     debugSerial.print("Adjust Color No.");
     debugSerial.print(no);
     debugSerial.print(":");
-    for(char i = 0;i < 4;++i)
+    for(char i = 0; i < 4; ++i)
     {
         debugSerial.print(avg[i][no].avg());
         if(i < 3)
@@ -534,7 +531,7 @@ void adjustColor(uchr no)
 #endif // DEBUG
 
     uint addr = ColorStorageAddr + no * 4 * 2;
-    for(uchr i = 0;i < 4;++i)
+    for(uchr i = 0; i < 4; ++i)
     {
         EEPROM_writeInt(addr,avg[i][no].avg());
         addr += 2;
@@ -546,7 +543,7 @@ template <typename T>
 T Sum(T *arr,uint n)
 {
     T s = T(0);
-    for(uint i = 0;i < n;++i)
+    for(uint i = 0; i < n; ++i)
         s += arr[i];
     return s;
 }
@@ -561,7 +558,7 @@ template <typename T>
 T Max(T *arr,uint n)
 {
     T t = 0;
-    for(uchr i = 0;i < n;++i)
+    for(uchr i = 0; i < n; ++i)
     {
         if(arr[i] > t)
         {

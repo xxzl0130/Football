@@ -20,24 +20,21 @@ private:
     /**起始通道的接口，其余顺延**/
     uchr cntEye;
     /**复眼数目**/
-    uchr degreePerEye;
+    float degreePerEye;
     /**每只眼对应的角度**/
     uint *value;
 
 public:
     uint environIR;
     /**环境光干扰**/
-    IR_Eye(uchr Pin = A0,uchr Cnt = 6,uint Angel = 180)
+    IR_Eye(uchr Pin = A0,uchr Cnt = 6,uint Angel = 180):environIR(950),sPin(Pin),cntEye(Cnt)
     {
-        sPin = Pin;
-        cntEye = Cnt;
-
         for(uchr i = 0; i < cntEye; ++i)
         {
             pinMode(sPin + i, INPUT);
         }
 
-        degreePerEye = Angel / (cntEye - 1);
+        degreePerEye = (float)Angel / (cntEye - 1);
 
         value = new uint[cntEye];
         memset(value,0,sizeof(uint) * cntEye);
@@ -123,6 +120,15 @@ public:
         }
         debugSerial.print("\n");
     }
+    void printAll2Ser(uint *arr)
+    {
+        for(uchr i = 0; i < cntEye - 1; ++i)
+        {
+            debugSerial.print(arr[i]);
+            debugSerial.print(" | ");
+        }
+        debugSerial.println(arr[cntEye - 1]);
+    }
 #endif
     /******************************
     函数名称：getMinNo
@@ -159,12 +165,12 @@ public:
     传入参数：无
     返回值：值最小的通道所对应的角度
     ******************************/
-    uint getMinDir(void)
+    float getMinDir(void)
     {
-        return (uint)degreePerEye * getMinNo();
+        return degreePerEye * getMinNo();
     }
 
-    uchr getMinDir(uint *arr)
+    float getMinDir(uint *arr)
     {
         return degreePerEye * getMinNo(arr);
     }
