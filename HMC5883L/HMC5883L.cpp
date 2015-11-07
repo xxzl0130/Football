@@ -189,13 +189,13 @@ hmc5883l_samples_t HMC5883L::getSamples(void)
 Vector HMC5883L::selfTest()
 {
 	Vector Value;
-	
+
 	setMeasurementMode(HMC5883L_SINGLE);
 	writeRegister8(HMC5883L_REG_CONFIG_A, 0x00);
 	writeRegister8(HMC5883L_REG_CONFIG_A, 0x01);
 	Value = readRaw();
 	writeRegister8(HMC5883L_REG_CONFIG_A, 0x00);
-	
+
 	return Value;
 }
 
@@ -288,4 +288,11 @@ int16_t HMC5883L::readRegister16(uint8_t reg)
     value = vha << 8 | vla;
 
     return value;
+}
+
+float HMC5883L::heading()
+{
+    Vector norm = this -> readNormalize();
+    float head = atan2(norm.YAxis, norm.XAxis) * 180.0 / M_PI;
+    return head;
 }

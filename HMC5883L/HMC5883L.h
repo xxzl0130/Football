@@ -112,7 +112,9 @@ class HMC5883L
 
 	void  setSamples(hmc5883l_samples_t samples);
 	hmc5883l_samples_t getSamples(void);
-	
+
+	float heading();
+
 	Vector selfTest();
 
     private:
