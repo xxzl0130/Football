@@ -8,7 +8,7 @@ template<typename T>
 struct QueueNode
 {
     T data;
-    T *next;
+    QueueNode *next;
 };
 
 template<typename T>

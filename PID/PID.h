@@ -40,6 +40,11 @@ public:
         dState = position;
         return pTerm + iTerm - dTerm;
     }
+
+    inline void reset(void)
+    {
+        dState = iState = 0.0;
+    }
 };
 
 #endif // __PID_H__

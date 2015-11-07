@@ -1,8 +1,0 @@
-已定义但未完成实现的函数：
-Position<float> getCurPosInfo(void)
-
-当前目标：
-位置姿态相关函数
-
-下一目标：
-追球

@@ -1,26 +1,28 @@
 #include "AttackMain.h"
 #include <arduino.h>
 
+#ifndef DEBUG
+#define DEBUG
+#define debugSerial Serial1
+#endif
 LSM303          compass;
 IR_Eye          eye(A0,10,360);
 
 DC_MotorVerticalSquare<DC_Motor_EN> motor(DC_MotorPair<DC_Motor_EN>(DC_Motor_EN(4,5,21),DC_Motor_EN(6,7,22)),
         DC_MotorPair<DC_Motor_EN>(DC_Motor_EN(8,9,23),DC_Motor_EN(10,11,24)));
 
-US_Distance     xAxisUS1(26,27);
+US_Distance     xAxisUS1(30,31);
 US_Distance     xAxisUS2(28,29);
-US_Distance     yAxisUS1(30,31);
-US_Distance     yAxisUS2(32,33);
+US_Distance     yAxisUS1(32,33);
+US_Distance     yAxisUS2(26,27);
 
 AnalogGray_Color      xAxisGray1(A10,4);
 AnalogGray_Color      xAxisGray2(A11,4);
 AnalogGray_Color      yAxisGray1(A12,4);
 AnalogGray_Color      yAxisGray2(A13,4);
 
-PID anglePID(2.0,0.05,0);
-
 float xAxisMagDir = 0.0;
-//æ¯”èµ›åœºåœ°xè½´æ–¹å‘çš„ç£è§’åº¦ï¼Œç”¨äºç¡®å®šæ–¹å‘
+//±ÈÈü³¡µØxÖá·½ÏòµÄ´Å½Ç¶È£¬ÓÃÓÚÈ·¶¨·½Ïò
 
 void presetColor()
 {
@@ -34,13 +36,13 @@ void presetColor()
         yAxisGray1.smoothRead();
         delay(100);
     }
-    //åˆå§‹åŒ–å¹³å‡å€¼
+    //³õÊ¼»¯Æ½¾ùÖµ
 
     color[0][0] = xAxisGray1.smoothRead();
     color[1][0] = xAxisGray2.smoothRead();
     color[2][0] = yAxisGray1.smoothRead();
     color[3][0] = yAxisGray2.smoothRead();
-    //ä¿å­˜ç¬¬ä¸€ç»„æ•°æ®ï¼Œéœ€è¦ä¿è¯æ”¾ç½®æœºå™¨åœ¨ç¬¬ä¸€ä¸ªï¼ˆæœ€å·¦ä¾§æˆ–æœ€å³ä¾§ï¼‰è‰²å—
+    //±£´æµÚÒ»×éÊı¾İ£¬ĞèÒª±£Ö¤·ÅÖÃ»úÆ÷ÔÚµÚÒ»¸ö£¨×î×ó²à»ò×îÓÒ²à£©É«¿é
 
     do
     {
@@ -53,7 +55,7 @@ void presetColor()
             abs(color[3][0] - yAxisGray2.smoothRead()) <= ColorThreshold);
     delay(40);
     motor.stop();
-    //å‘ä¸€ä¾§ç¼“æ…¢ç§»åŠ¨å¹¶åŒæ—¶æ£€æµ‹é¢œè‰²
+    //ÏòÒ»²à»ºÂıÒÆ¶¯²¢Í¬Ê±¼ì²âÑÕÉ«
 
     for(uchr i = 0; i < 8; ++i)
     {
@@ -63,13 +65,13 @@ void presetColor()
         yAxisGray1.smoothRead();
         delay(100);
     }
-    //å¹³æ»‘å¤„ç†
+    //Æ½»¬´¦Àí
 
     color[0][1] = xAxisGray1.smoothRead();
     color[1][1] = xAxisGray2.smoothRead();
     color[2][1] = yAxisGray1.smoothRead();
     color[3][1] = yAxisGray2.smoothRead();
-    //å­˜å…¥ç¬¬äºŒç»„é¢œè‰²
+    //´æÈëµÚ¶ş×éÑÕÉ«
 
     do
     {
@@ -82,7 +84,7 @@ void presetColor()
             abs(color[3][1] - yAxisGray2.smoothRead()) <= ColorThreshold);
     delay(40);
     motor.stop();
-    //ç»§ç»­ç§»åŠ¨å¯»æ‰¾ç¬¬ä¸‰ä¸ªè‰²å—
+    //¼ÌĞøÒÆ¶¯Ñ°ÕÒµÚÈı¸öÉ«¿é
 
     for(uchr i = 0; i < 8; ++i)
     {
@@ -92,13 +94,13 @@ void presetColor()
         yAxisGray1.smoothRead();
         delay(100);
     }
-    //å¹³æ»‘å¤„ç†
+    //Æ½»¬´¦Àí
 
     color[0][2] = xAxisGray1.smoothRead();
     color[1][2] = xAxisGray2.smoothRead();
     color[2][2] = yAxisGray1.smoothRead();
     color[3][2] = yAxisGray2.smoothRead();
-    //å­˜å…¥ç¬¬ä¸‰ä¸ªé¢œè‰²
+    //´æÈëµÚÈı¸öÑÕÉ«
 
     do
     {
@@ -111,7 +113,7 @@ void presetColor()
             abs(color[3][1] - yAxisGray2.smoothRead()) > ColorThreshold);
     delay(40);
     motor.stop();
-    //é€€å›åˆ°ç¬¬äºŒä¸ªè‰²å—
+    //ÍË»Øµ½µÚ¶ş¸öÉ«¿é
     do
     {
         motor.yAxis.run(FORWORD,80);
@@ -123,7 +125,7 @@ void presetColor()
             abs(color[3][1] - yAxisGray2.smoothRead()) <= ColorThreshold);
     delay(40);
     motor.stop();
-    //ç«–ç›´ç§»åŠ¨åˆ°ç¦åŒºé»‘è‰²å—
+    //ÊúÖ±ÒÆ¶¯µ½½ûÇøºÚÉ«¿é
 
     for(uchr i = 0; i < 8; ++i)
     {
@@ -133,13 +135,13 @@ void presetColor()
         yAxisGray1.smoothRead();
         delay(100);
     }
-    //å¹³æ»‘å¤„ç†
+    //Æ½»¬´¦Àí
 
     color[0][2] = xAxisGray1.smoothRead();
     color[1][2] = xAxisGray2.smoothRead();
     color[2][2] = yAxisGray1.smoothRead();
     color[3][2] = yAxisGray2.smoothRead();
-    //å­˜å…¥ç¬¬å››ä¸ªé¢œè‰²
+    //´æÈëµÚËÄ¸öÑÕÉ«
 
     uint addr = ColorStorageAddr;
     byte high,low;
@@ -153,40 +155,45 @@ void presetColor()
             EEPROM.write(addr++,low);
         }
     }
-    //å°†æ•°æ®å­˜å…¥EEPROM
+    //½«Êı¾İ´æÈëEEPROM
 }
 
 void loadPresetColor()
 {
-    byte high,low;
-    uint addr = ColorStorageAddr;
-
+    uint addr = ColorStorageAddr,val;
+#ifndef DEBUG
+    debugSerial.print("Preset Color:");
+#endif // DEBUG
     for(uchr i = 0; i < 4; ++i)
     {
-        high = EEPROM.read(addr++);
-        low  = EEPROM.read(addr++);
-        xAxisGray1.setColor(i,(uint)high << 8 | low);
-    }
-
-    for(uchr i = 0; i < 4; ++i)
-    {
-        high = EEPROM.read(addr++);
-        low  = EEPROM.read(addr++);
-        xAxisGray2.setColor(i,(uint)high << 8 | low);
-    }
-
-    for(uchr i = 0; i < 4; ++i)
-    {
-        high = EEPROM.read(addr++);
-        low  = EEPROM.read(addr++);
-        yAxisGray1.setColor(i,(uint)high << 8 | low);
-    }
-
-    for(uchr i = 0; i < 4; ++i)
-    {
-        high = EEPROM.read(addr++);
-        low  = EEPROM.read(addr++);
-        yAxisGray2.setColor(i,(uint)high << 8 | low);
+        val = EEPROM_readInt(addr);
+        addr += 2;
+        xAxisGray1.setColor(i,val);
+#ifdef DEBUG
+        debugSerial.print(val);
+        debugSerial.print(" | ");
+#endif // DEBUG
+        val = EEPROM_readInt(addr);
+        addr += 2;
+        xAxisGray2.setColor(i,val);
+#ifdef DEBUG
+        debugSerial.print(val);
+        debugSerial.print(" | ");
+#endif // DEBUG
+        val = EEPROM_readInt(addr);
+        addr += 2;
+        yAxisGray1.setColor(i,val);
+#ifdef DEBUG
+        debugSerial.print(val);
+        debugSerial.print(" | ");
+#endif // DEBUG
+        val = EEPROM_readInt(addr);
+        addr += 2;
+        yAxisGray1.setColor(i,val);
+#ifdef DEBUG
+        debugSerial.print(val);
+        debugSerial.print("\n");
+#endif // DEBUG
     }
 }
 
@@ -224,21 +231,14 @@ void setCompassOffset()
     Offset.y = (Max.y + Min.y) / 2;
     Offset.z = (Max.z + Min.z) / 2;
 
-    byte high,low;
     uint addr = CompassStorageAddr;
 
-    high = (byte)(Offset.x >> 8);
-    low  = (byte)(Offset.x & 0xff);
-    EEPROM.write(addr++,high);
-    EEPROM.write(addr++,low);
-    high = (byte)(Offset.y >> 8);
-    low  = (byte)(Offset.y & 0xff);
-    EEPROM.write(addr++,high);
-    EEPROM.write(addr++,low);
-    high = (byte)(Offset.z >> 8);
-    low  = (byte)(Offset.z & 0xff);
-    EEPROM.write(addr++,high);
-    EEPROM.write(addr++,low);
+    EEPROM_writeInt(addr,Offset.x);
+    addr += 2;
+    EEPROM_writeInt(addr,Offset.y);
+    addr += 2;
+    EEPROM_writeInt(addr,Offset.z);
+    addr += 2;
 
     compass.setOffset(Offset.x,Offset.y,Offset.z);
 
@@ -265,20 +265,26 @@ void loadCompassOffset()
     compass.init();
     compass.enableDefault();
 
-    high = EEPROM.read(addr++);
-    low  = EEPROM.read(addr++);
-    Offset.x = (int)high << 8 | low;
-    high = EEPROM.read(addr++);
-    low  = EEPROM.read(addr++);
-    Offset.y = (int)high << 8 | low;
-    high = EEPROM.read(addr++);
-    low  = EEPROM.read(addr++);
-    Offset.z = (int)high << 8 | low;
+    Offset.x = EEPROM_readInt(addr);
+    addr += 2;
+    Offset.y = EEPROM_readInt(addr);
+    addr += 2;
+    Offset.z = EEPROM_readInt(addr);
 
     compass.setOffset(Offset.x,Offset.y,Offset.z);
+
+#ifdef DEBUG
+    debugSerial.print("Compass Offset:");
+    debugSerial.print(Offset.x);
+    debugSerial.print(" | ");
+    debugSerial.print(Offset.y);
+    debugSerial.print(" | ");
+    debugSerial.print(Offset.z);
+    debugSerial.print("\n");
+#endif // DEBUG
 }
 
-//è®¾ç½®æ¯”èµ›åœºåœ°xè½´æ–¹å‘çš„ç£è§’åº¦ï¼Œéœ€è¦åœ¨æ­¤ä¹‹å‰åˆå§‹åŒ–ç½—ç›˜ã€‚
+//ÉèÖÃ±ÈÈü³¡µØxÖá·½ÏòµÄ´Å½Ç¶È£¬ĞèÒªÔÚ´ËÖ®Ç°³õÊ¼»¯ÂŞÅÌ¡£
 void setXAxisMagDir(void)
 {
     CircleQueue_Avg<float> heading;
@@ -332,7 +338,7 @@ float getAngle2xAxis(void)
     return compass.heading() - xAxisMagDir;
 }
 
-inline bool keyPressed(uint8_t pin,uint8_t mode)
+bool keyPressed(uchr pin,uchr mode)
 {
     if(digitalRead(pin) == mode)
     {
@@ -347,7 +353,7 @@ inline bool keyPressed(uint8_t pin,uint8_t mode)
 
 uchr judgeArea(void)
 {
-    uchr area[4] = {0},t;
+    uchr area[4] = {0},t,i,j;
 
     if((t = xAxisGray1.color()) != 0xff)
     {
@@ -382,15 +388,21 @@ uchr judgeArea(void)
         return 0xff;
     }
 
-    return max(area,4);
+    for(t = i = 0;i < 4;++i)
+    {
+        if(area[i] > t)
+        {
+            t = area[i];
+            j = i;
+        }
+    }
+    return j;
 }
 
 void preset(void)
 {
 #ifdef DEBUG
-    debugSerial.begin(9600);
     debugSerial.println("Start preset.");
-    Serial.println("Start preset.");
 #endif // DEBUG
     for(uchr i = 0; i < KeyPinCnt; ++i)
     {
@@ -436,7 +448,7 @@ void preset(void)
         }
         else if(digitalRead(KeyPinSt + 4) == HIGH)
         {
-            //1é”®å¯¹åº”æ ¡å‡†ç£åœº
+            //1¼ü¶ÔÓ¦Ğ£×¼´Å³¡
             delay(10);
             if(digitalRead(KeyPinSt + 4) == HIGH)
             {
@@ -455,7 +467,7 @@ void preset(void)
         }
         else if(digitalRead(KeyPinSt + 6) == HIGH)
         {
-            //ç»“æŸé”®
+            //½áÊø¼ü
             delay(10);
             if(digitalRead(KeyPinSt + 6) == HIGH)
             {
@@ -464,6 +476,9 @@ void preset(void)
             }
         }
     }
+#ifdef DEBUG
+    debugSerial.println("End preset.");
+#endif // DEBUG
 }
 
 void adjustColor(uchr no)
@@ -471,10 +486,10 @@ void adjustColor(uchr no)
     uint color[4];
     static Queue_Avg<uint> avg[4][4];
     static Queue_Avg<uint> IR;
-    //ç”¨äºåœ¨åœºåœ°å¤šä¸ªä½ç½®å¤šæ¬¡æµ‹é‡æ±‚å¹³å‡å€¼
+    //ÓÃÓÚÔÚ³¡µØ¶à¸öÎ»ÖÃ¶à´Î²âÁ¿ÇóÆ½¾ùÖµ
 
-    IR.push(avg(eye.getAllValue(IR),eye.getCntEye()));
-    //é¡ºå¸¦åŒæ—¶æµ‹ç¯å¢ƒå…‰
+    IR.push(Avg(eye.getAllValue(),eye.getCntEye()));
+    //Ë³´øÍ¬Ê±²â»·¾³¹â
     for(uchr i = 0; i < 10; ++i)
     {
         xAxisGray1.smoothRead();
@@ -483,7 +498,7 @@ void adjustColor(uchr no)
         yAxisGray2.smoothRead();
         delay(100);
     }
-    //åˆå§‹åŒ–å¹³å‡å€¼
+    //³õÊ¼»¯Æ½¾ùÖµ
 
     color[0] = xAxisGray1.smoothRead();
     color[1] = xAxisGray2.smoothRead();
@@ -500,8 +515,8 @@ void adjustColor(uchr no)
     yAxisGray1.setColor(no,avg[2][no].avg());
     yAxisGray2.setColor(no,avg[3][no].avg());
 
-    IR.push(avg(eye.getAllValue(IR),eye.getCntEye()));
-    //é¡ºå¸¦åŒæ—¶æµ‹ç¯å¢ƒå…‰
+    IR.push(Avg(eye.getAllValue(),eye.getCntEye()));
+    //Ë³´øÍ¬Ê±²â»·¾³¹â
     eye.setEnvironIR(IR.avg());
 #ifdef DEBUG
     debugSerial.print("Adjust Color No.");
@@ -509,7 +524,7 @@ void adjustColor(uchr no)
     debugSerial.print(":");
     for(char i = 0;i < 4;++i)
     {
-        debugSerial.print(color[i]);
+        debugSerial.print(avg[i][no].avg());
         if(i < 3)
         {
             debugSerial.print(" | ");
@@ -517,11 +532,18 @@ void adjustColor(uchr no)
     }
     debugSerial.print("\n");
 #endif // DEBUG
+
+    uint addr = ColorStorageAddr + no * 4 * 2;
+    for(uchr i = 0;i < 4;++i)
+    {
+        EEPROM_writeInt(addr,avg[i][no].avg());
+        addr += 2;
+    }
 }
 
 
 template <typename T>
-T sum(T *arr,uint n)
+T Sum(T *arr,uint n)
 {
     T s = T(0);
     for(uint i = 0;i < n;++i)
@@ -530,13 +552,13 @@ T sum(T *arr,uint n)
 }
 
 template <typename T>
-T avg(T *arr,uint n)
+T Avg(T *arr,uint n)
 {
-    return T(sum(arr,n) / T(n));
+    return T(Sum(arr,n) / T(n));
 }
 
 template <typename T>
-T max(T *arr,uint n)
+T Max(T *arr,uint n)
 {
     T t = 0;
     for(uchr i = 0;i < n;++i)
@@ -547,4 +569,22 @@ T max(T *arr,uint n)
         }
     }
     return t;
+}
+
+void EEPROM_writeInt(uint addr,uint data)
+{
+    byte high,low;
+
+    high = (byte)(data >> 8);
+    low  = (byte)(data & 0xff);
+    EEPROM.write(addr,high);
+    EEPROM.write(addr + 1,low);
+}
+
+uint EEPROM_readInt(uint addr)
+{
+    byte high,low;
+    high = EEPROM.read(addr++);
+    low  = EEPROM.read(addr++);
+    return (int)high << 8 | low;
 }

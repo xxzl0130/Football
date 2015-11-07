@@ -27,8 +27,6 @@
 #define ulong unsigned long
 #endif // ulong
 
-#define ColorThreshold          20
-//不同颜色间的阈值
 #define MaxDistance             250
 #define MinDistance             5
 //对超声波测距数据做上下限限制
@@ -42,9 +40,9 @@
 #define CompassStorageAddr      (ColorStorageAddr + ColorStorageOffset)
 #define CompassStorageOffset    (3*2)
 //EEPROM存储地址信息
-#define KeyPinSt                35
-#define KeyPinCnt               7
-#define IntKey                  3
+#define KeyPinSt                34
+#define KeyPinCnt               8
+//#define IntKey                  3
 
 #define degree2radian(angle) ((angle) / 180.0 * M_PI)
 
@@ -64,6 +62,7 @@ extern AnalogGray_Color      yAxisGray1;
 extern AnalogGray_Color      yAxisGray2;
 
 extern PID  anglePID;
+extern float xAxisMagDir;
 
 template<typename T>
 struct Position{
@@ -87,18 +86,21 @@ void setXAxisMagDir(void);
 void preset(void);
 //for preset
 
-inline bool keyPressed(uint8_t pin,uint8_t mode = HIGH);
+bool keyPressed(uchr pin,uchr mode = HIGH);
 void flashLED(uint time = 200);
-inline float checkDistance(float);
+float checkDistance(float);
 uchr judgeArea(void);
 float getAngle2Ball(void);
 float getAngle2Gate(void);
 float getAngle2xAxis(void);
 
 template <typename T>
-T avg(T *arr,uint n);
+T Avg(T *arr,uint n);
 template <typename T>
-T sum(T *arr,uint n);
+T Sum(T *arr,uint n);
 template <typename T>
-T max(T *arr,uint n);
+T Max(T *arr,uint n);
+
+void EEPROM_writeInt(uint addr,uint data);
+uint EEPROM_readInt(uint addr);
 #endif // __ATTACK_MAIN_H__

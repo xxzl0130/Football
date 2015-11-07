@@ -83,6 +83,16 @@ public:
     {
         run(currentDir == FORWORD ? BACKWORD : FORWORD,currentSpeed);
     }
+
+    inline uchr getCurrentSpeed(void)const
+    {
+        return currentSpeed;
+    }
+
+    inline Direction getCurrentDir(void)const
+    {
+        return currentDir;
+    }
 };
 
 class DC_Motor_EN:public DC_Motor

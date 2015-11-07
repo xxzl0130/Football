@@ -461,6 +461,7 @@ the Pololu LSM303DLHC, LSM303DLM, and LSM303DLH carriers.
 */
 float LSM303::heading(void)
 {
+    read();
     if (_device == device_D)
     {
         return heading((vector<int>)

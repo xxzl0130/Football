@@ -27,16 +27,16 @@ public:
         digitalWrite(trigPin,HIGH);
         delayMicroseconds(11);
         digitalWrite(trigPin,LOW);
-#ifdef DEBUG
+/*#ifdef DEBUG
         Dis = pulseIn(echoPin,HIGH);
         debugSerial.print("Time:");
         debugSerial.print(Dis);
         debugSerial.print("\t\tDis:");
         Dis /= 58.0;
         debugSerial.println(Dis);
-#else
-        Dis = pulseIn(echoPin,HIGH) / 58.0;
-#endif // DEBUG
+#else*/
+        Dis = (float)pulseIn(echoPin,HIGH) / 58.0;
+//#endif // DEBUG
 
         return Dis;
     }
