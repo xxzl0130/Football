@@ -1,15 +1,16 @@
 #include "AttackMain.h"
 #include <arduino.h>
 
-#ifndef DEBUG
+/*#ifndef DEBUG
 #define DEBUG
 #define debugSerial Serial1
-#endif
+#endif*/
 LSM303          compass;
 IR_Eye          eye(A0,10,360);
 
 DC_MotorVerticalSquare<DC_Motor_EN> motor(DC_MotorPair<DC_Motor_EN>(DC_Motor_EN(4,5,21),DC_Motor_EN(6,7,22)),
         DC_MotorPair<DC_Motor_EN>(DC_Motor_EN(8,9,23),DC_Motor_EN(10,11,24)));
+DC_Motor_EN_1   ballMotor(50,51,12);
 
 US_Distance     xAxisUS1(30,31);
 US_Distance     xAxisUS2(28,29);
@@ -161,7 +162,7 @@ void presetColor()
 void loadPresetColor()
 {
     uint addr = ColorStorageAddr,val;
-#ifndef DEBUG
+#ifdef DEBUG
     debugSerial.print("Preset Color:");
 #endif // DEBUG
     for(uchr i = 0; i < 4; ++i)
@@ -354,11 +355,19 @@ bool keyPressed(uchr pin,uchr mode)
     return false;
 }
 
-uchr judgeArea(void)
+/*uchr judgeArea(void)
 {
     uchr area[4] = {0},t,i,j;
 
-    if((t = xAxisGray1.color()) != 0xff)
+    for(uchr i = 0;i < 10;++i)
+    {
+        xAxisGray1.smoothRead();
+        xAxisGray2.smoothRead();
+        yAxisGray1.smoothRead();
+        yAxisGray2.smoothRead();
+        //delay(1);
+    }
+    if((t = xAxisGray1.color(xAxisGray1.smoothRead())) != 0xff)
     {
         ++area[t];
     }
@@ -366,7 +375,7 @@ uchr judgeArea(void)
     {
         return 0xff;
     }
-    if((t = xAxisGray2.color()) != 0xff)
+    if((t = xAxisGray2.color(xAxisGray2.smoothRead())) != 0xff)
     {
         ++area[t];
     }
@@ -374,7 +383,7 @@ uchr judgeArea(void)
     {
         return 0xff;
     }
-    if((t = yAxisGray1.color()) != 0xff)
+    if((t = yAxisGray1.color(yAxisGray1.smoothRead())) != 0xff)
     {
         ++area[t];
     }
@@ -382,7 +391,7 @@ uchr judgeArea(void)
     {
         return 0xff;
     }
-    if((t = yAxisGray2.color()) != 0xff)
+    if((t = yAxisGray2.color(yAxisGray2.smoothRead())) != 0xff)
     {
         ++area[t];
     }
@@ -400,11 +409,11 @@ uchr judgeArea(void)
         }
     }
     return j;
-}
+}*/
 
-bool inArea(uchr no)
+uchr judgeArea(void)
 {
-    uchr area[4] = {0},t;
+    uchr area[4] = {0},t,i,j;
 
     if((t = xAxisGray1.color()) != 0xff)
     {
@@ -419,6 +428,38 @@ bool inArea(uchr no)
         ++area[t];
     }
     if((t = yAxisGray2.color()) != 0xff)
+    {
+        ++area[t];
+    }
+
+    for(t = i = 0; i < 4; ++i)
+    {
+        if(area[i] > t)
+        {
+            t = area[i];
+            j = i;
+        }
+    }
+    return t ? j : 0xff;
+}
+
+bool inArea(uchr no)
+{
+    uchr area[4] = {0},t;
+
+    if((t = xAxisGray1.color(xAxisGray1.smoothRead())) != 0xff)
+    {
+        ++area[t];
+    }
+    if((t = xAxisGray2.color(xAxisGray2.smoothRead())) != 0xff)
+    {
+        ++area[t];
+    }
+    if((t = yAxisGray1.color(yAxisGray1.smoothRead())) != 0xff)
+    {
+        ++area[t];
+    }
+    if((t = yAxisGray2.color(yAxisGray2.smoothRead())) != 0xff)
     {
         ++area[t];
     }
@@ -468,14 +509,13 @@ void preset(void)
         }
         else if(keyPressed(KeyPinSt + 6))
         {
-            Serial.println("End preset.");
+#ifdef DEBUG
+            debugSerial.println("End preset.");
+#endif // DEBUG
             flashLED();
             break;
         }
     }
-#ifdef DEBUG
-    debugSerial.println("End preset.");
-#endif // DEBUG
 }
 
 void adjustColor(uchr no)
@@ -538,6 +578,112 @@ void adjustColor(uchr no)
     }
 }
 
+Position<float> getCurPos()
+{
+    Position<float> pos;
+    static uchr area[4],t,i,j,k = 0;
+    if(!k)
+        pos.angle = compass.heading();
+    if((t = xAxisGray1.color()) != 0xff)
+    {
+        ++area[t];
+    }
+    if((t = xAxisGray2.color()) != 0xff)
+    {
+        ++area[t];
+    }
+    if((t = yAxisGray1.color()) != 0xff)
+    {
+        ++area[t];
+    }
+    if((t = yAxisGray2.color()) != 0xff)
+    {
+        ++area[t];
+    }
+    for(t = i = 0; i < 4; ++i)
+    {
+        if(area[i] > t)
+        {
+            t = area[i];
+            j = i;
+        }
+    }
+    if(t == 0)
+    {
+        pos.x = pos.y = 0;
+    }
+    else
+    {
+        switch(j)
+        {
+        case 0:
+            pos.x = 19.25 + (float)(area[1] + area[3]) / 4.0 * SelfDiameter;
+            if(fabs(angle - xAxisMagDir) <= 40.0)
+            {
+                pos.y = yAxisUS1.getDistance() + BlankWidth;
+            }
+            else if(fabs(fabs(angle - xAxisMagDir) - 180) < 40.0)
+            {
+                pos.y = yAxisUS2.getDistance() + BlankWidth;
+            }
+            else
+            {
+                pos.y = 0;
+            }
+            break;
+        case 1:
+            pos.x = 61.0 + (float)(-area[0] + area[2]) / 4.0 * SelfDiameter;
+            if(fabs(angle - xAxisMagDir) <= 40.0)
+            {
+                pos.y = yAxisUS1.getDistance() + GateDepth;
+            }
+            else if(fabs(fabs(angle - xAxisMagDir) - 180) < 40.0)
+            {
+                pos.y = yAxisUS2.getDistance() + GateDepth;
+            }
+            else
+            {
+                pos.y = 0;
+            }
+            break
+        case 2:
+            pos.x = 102.75 - (float)(area[1] + area[3]) / 4.0 * SelfDiameter;
+            if(fabs(angle - xAxisMagDir) <= 40.0)
+            {
+                pos.y = yAxisUS1.getDistance() + BlankWidth;
+            }
+            else if(fabs(fabs(angle - xAxisMagDir) - 180) < 40.0)
+            {
+                pos.y = yAxisUS2.getDistance() + BlankWidth;
+            }
+            else
+            {
+                pos.y = 0;
+            }
+            break;
+        case 3:
+            pos.x = 61.0 + (float)(-area[0] + area[2]) / 4.0 * SelfDiameter;
+            if(fabs(angle - xAxisMagDir) <= 40.0)
+            {
+                pos.y = yAxisUS1.getDistance() + GateDepth;
+            }
+            else if(fabs(fabs(angle - xAxisMagDir) - 180) < 40.0)
+            {
+                pos.y = yAxisUS2.getDistance() + GateDepth;
+            }
+            else
+            {
+                pos.y = 0;
+            }
+            break;
+        default:
+            pos.x = pos.y = 0.0;
+            break;
+        }
+    }
+    k = (k + 1) % 10;
+    return pos;
+}
 
 template <typename T>
 T Sum(T *arr,uint n)

@@ -1,0 +1,8 @@
+ÒÔmegaÎª×¼
+
+function		time(ms)
+inArea			0.59
+JudgeArea		6.21
+compass.heading		2.72
+chaseBall		2.01
+motor.angleRun		0.43

@@ -144,10 +144,10 @@ public:
 
     uchr getMinNo(uint *arr)
     {
-        uint Min = INT_MAX;
+        uint Min = arr[0];
         uchr no = 0;
 
-        for(uchr i = 0; i < cntEye; ++i)
+        for(uchr i = 1; i < cntEye; ++i)
         {
             if(arr[i] < Min)
             {
@@ -206,8 +206,10 @@ public:
         return cntEye;
     }
 
-
+    uint read(uchr channel = 0)
+    {
+        return analogRead(sPin + channel);
+    }
 };
-
 
 #endif // __IR_EYE_H__

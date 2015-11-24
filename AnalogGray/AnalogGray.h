@@ -1,10 +1,10 @@
 #ifndef __ANALOG_GRAY_H__
 #define __ANALOG_GRAY_H__
 
-#ifndef DEBUG
+/*#ifndef DEBUG
 #define DEBUG
 #define debugSerial Serial1
-#endif
+#endif*/
 
 #include "arduino.h"
 #include <../Queue/Queue.h>
@@ -83,6 +83,15 @@ public:
     uchr color()
     {
         int val = read();
+        for(uchr i = 0; i < cntColor; ++i)
+        {
+            if(abs(val - colorPtr[i]) <= ColorThreshold)
+                return i;
+        }
+        return 0xff;
+    }
+    uchr color(int val)
+    {
         for(uchr i = 0; i < cntColor; ++i)
         {
             if(abs(val - colorPtr[i]) <= ColorThreshold)

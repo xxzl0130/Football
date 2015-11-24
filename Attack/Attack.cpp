@@ -17,6 +17,8 @@
 #define FLASH_FREQUENCE 25
 #endif
 
+#define holdBallThreshold   32
+
 uint value[12];
 //存储复眼数据用的公共全局数组
 uchr speed = 255,omega = 255;
@@ -31,6 +33,7 @@ void defend(void);
 void search(void);
 bool chaseBall(void);
 bool isBall(void);
+bool holdBall();
 
 void setup()
 {
@@ -54,10 +57,9 @@ void setup()
 
 void loop()
 {
-    //chaseBall();
-    //move();
-    chaseBall();
-    delay(100);
+    while(!keyPressed(keyPinSt + 7));
+    while(1)
+      move();
 }
 
 bool isBall(void)
@@ -68,18 +70,21 @@ bool isBall(void)
 
 void move(void)
 {
-    float angle;
-    static  unsigned long searchTime;
-    bool searchFlag = false;
-
-    if(isBall())
+    if(!isBall())
     {
+        search();
         defend();
     }
     else
     {
-        //通过复眼对球位置判断和自身位置判断决定是进攻还是防守
-        attack();
+        if(!holdBall())
+        {
+            chaseBall();
+        }
+        else
+        {
+            attack();
+        }
     }
 }
 
@@ -93,37 +98,26 @@ void search(void)
         motor.xAxis.run(FORWORD,255);
         motor.yAxis.rotateRun(FORWORD,192);
         //在场地画圆寻找球
-        if(millis() - time > 2000)//2s后搜寻超时
+        if(millis() - time > 1000)//2s后搜寻超时
         {
             defend();//回防
             return;
         }
     }
 
-    delay(50);
     motor.stop();
-    anglePID.reset();
-    chaseBall();
 }
 
 bool chaseBall(void)
 {
-    static uchr flag = 0;
     //0 for xAxis,1 for yAxis.
     eye.getAllValue(value);
-    eye.printAll2Ser(value);
     angle = getAngle2Ball(value);
-    if(eye.getMinValue(value) < 128 && eye.getMinValue(value) > 64 && eye.getMinNo(value) != 0)
-    {//较近距离
-        /*if(angle > 45.0 && angle < 230.0)
-        {
-            motor.rotateRun(FORWORD,127);
-        }
-        else
-        {
-            motor.rotateRun(BACKWORD,127);
-        }*/
-        motor.rotateRun(FORWORD,100);
+    holdBall();
+    if(eye.getMinValue(value) < 128 && !holdBall())
+    {
+        //较近距离
+        motor.rotateRun(FORWORD,128);
         return true;
     }
     else
@@ -132,10 +126,30 @@ bool chaseBall(void)
         return false;
     }
 #ifdef DEBUG
-    debugSerial.println(angle);
-    /*debugSerial.print("  ");
+    /*debugSerial.println(angle);
+    debugSerial.print("  ");
     debugSerial.println(omega);*/
 #endif
+}
+
+bool holdBall()
+{
+    uint val;
+    val = min(eye.read(0),eye.read(1));
+#ifdef DEBUG
+    /*debugSerial.print(val);
+    debugSerial.print(" ");*/
+#endif
+    if(val <= holdBallThreshold)
+    {
+        ballMotor.run(BACKWORD,255);
+        return true;
+    }
+    else
+    {
+        ballMotor.run(BACKWORD,map(val,holdBallThreshold,1024,255,0));
+        return false;
+    }
 }
 
 void defend()
@@ -145,20 +159,17 @@ void defend()
 #ifdef DEBUG
     debugSerial.println("defend");
 #endif
-
-    while(fabs((angle = compass.heading()) - xAxisMagDir) > 3.0)
+    angle = compass.heading();
+    if(angle >= xAxisMagDir || angle + 360.0 - xAxisMagDir <= 180.0)
     {
-        /*omega = max(abs(pid.Update(angle - xAxisMagDir,angle)),SPEED_MAX);
-        motor.rotateRun(angle - xAxisMagDir > 0 ? FORWORD : BACKWORD,omega);
-        delay(50);*/
-        if(angle >= xAxisMagDir || angle + 360.0 - xAxisMagDir <= 180.0)
-        {
-            dir = BACKWORD;
-        }
-        else
-        {
-            dir = FORWORD;
-        }
+        dir = BACKWORD;
+    }
+    else
+    {
+        dir = FORWORD;
+    }
+    while(fabs(compass.heading() - xAxisMagDir) > 3.0)
+    {
         motor.rotateRun(dir,128);
 #ifdef DEBUG
         /*debugSerial.print(omega);
@@ -197,5 +208,12 @@ void defend()
 
 void attack()
 {
-    chaseBall();
+    if(!holdBall())
+    {
+        chaseBall();
+    }
+    else
+    {
+
+    }
 }

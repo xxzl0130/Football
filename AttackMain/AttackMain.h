@@ -34,6 +34,7 @@
 #define MapWidth                122
 #define BlankWidth              30
 #define SelfDiameter            24.5
+#define GateDepth               8
 //³¡µØ³ß´ç
 #define ColorStorageAddr        0
 #define ColorStorageOffset      (4*4*2)
@@ -46,10 +47,16 @@
 
 #define degree2radian(angle) ((angle) / 180.0 * M_PI)
 
+#ifndef DEBUG
+#define DEBUG
+#define debugSerial Serial
+#endif
+
 extern LSM303          compass;
 extern IR_Eye          eye;
 
-extern DC_MotorVerticalSquare<DC_Motor_EN> motor;
+extern DC_MotorVerticalSquare<DC_Motor_EN> motor;\
+extern DC_Motor_EN_1   ballMotor;
 
 extern US_Distance     xAxisUS1;
 extern US_Distance     xAxisUS2;
@@ -95,6 +102,7 @@ float getAngle2Ball(void);
 float getAngle2Ball(uint *arr);
 float getAngle2Gate(void);
 float getAngle2xAxis(void);
+Position<float> getCurPos();
 
 template <typename T>
 T Avg(T *arr,uint n);
@@ -105,4 +113,5 @@ T Max(T *arr,uint n);
 
 void EEPROM_writeInt(uint addr,uint data);
 uint EEPROM_readInt(uint addr);
+
 #endif // __ATTACK_MAIN_H__

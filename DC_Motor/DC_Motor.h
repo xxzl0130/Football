@@ -117,6 +117,25 @@ public:
     }
 };
 
+class DC_Motor_EN_1:public DC_Motor_EN
+{
+protected:
+
+public:
+    DC_Motor_EN_1(uchr Pin0,uchr Pin1,uchr enPin):DC_Motor_EN(Pin0,Pin1,enPin)
+    {
+    }
+
+    void run(Direction dir,uchr Speed)
+    {
+        digitalWrite(Pin[dir],HIGH);
+        digitalWrite(Pin[dir ^ 1],LOW);
+        analogWrite(DC_Motor_EN::EN_Pin,Speed);
+        DC_Motor_EN::currentDir = dir;
+        DC_Motor_EN::currentSpeed = Speed;
+    }
+};
+
 template <typename T>
 class DC_MotorPair
 {
@@ -174,8 +193,9 @@ public:
         float xAxisSpeed,yAxisSpeed;
         pairSpeed speedRet;
 
-        xAxisSpeed = cos(degree2radian(angle));
-        yAxisSpeed = sin(degree2radian(angle));
+        angle = degree2radian(angle);
+        xAxisSpeed = cos(angle);
+        yAxisSpeed = sin(angle);
 
         speedRet.xDir = xAxisSpeed >= 0.0 ? FORWORD : BACKWORD;
         speedRet.yDir = yAxisSpeed >= 0.0 ? FORWORD : BACKWORD;
