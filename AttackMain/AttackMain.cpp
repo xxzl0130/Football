@@ -1,10 +1,6 @@
 #include "AttackMain.h"
 #include <arduino.h>
 
-/*#ifndef DEBUG
-#define DEBUG
-#define debugSerial Serial1
-#endif*/
 LSM303          compass;
 IR_Eye          eye(A0,10,360);
 
@@ -24,6 +20,8 @@ AnalogGray_Color      yAxisGray2(A13,4);
 
 float xAxisMagDir = 0.0;
 //比赛场地x轴方向的磁角度，用于确定方向
+const Position<float>    gatePosition(41.75,183.0);
+const Position<float>    homePosition(41.75,0);
 
 void presetColor()
 {
@@ -318,7 +316,7 @@ void flashLED(uint time)
     }
 }
 
-inline float checkDistance(float dis)
+float checkDistance(float dis)
 {
     if(dis > MaxDistance || dis < MinDistance)
         return 0.0;
@@ -338,15 +336,32 @@ float getAngle2Ball(uint *arr)
 
 float getAngle2xAxis(void)
 {
-    compass.read();
     return compass.heading() - xAxisMagDir;
+}
+
+float getAngle2Gate(void)
+{
+    Position<float> pos;
+    float angle;
+    pos = getCurPos();
+    angle = atan2f(gatePosition.y - pos.y,gatePosition.x - pos.x);
+    return radian2degree(angle);
+}
+
+float getAngle2Home(void)
+{
+    Position<float> pos;
+    float angle;
+    pos = getCurPos();
+    angle = atan2f(homePosition.y - pos.y,homePosition.x - pos.x);
+    return radian2degree(angle);
 }
 
 bool keyPressed(uchr pin,uchr mode)
 {
     if(digitalRead(pin) == mode)
     {
-        delay(10);
+        delay10ms();
         if(digitalRead(pin) == mode)
         {
             return true;
@@ -578,7 +593,7 @@ void adjustColor(uchr no)
     }
 }
 
-Position<float> getCurPos()
+Position<float> getCurPos(void)
 {
     Position<float> pos;
     static uchr area[4],t,i,j,k = 0;
@@ -618,11 +633,11 @@ Position<float> getCurPos()
         {
         case 0:
             pos.x = 19.25 + (float)(area[1] + area[3]) / 4.0 * SelfDiameter;
-            if(fabs(angle - xAxisMagDir) <= 40.0)
+            if(fabsf(pos.angle - xAxisMagDir) <= 40.0)
             {
                 pos.y = yAxisUS1.getDistance() + BlankWidth;
             }
-            else if(fabs(fabs(angle - xAxisMagDir) - 180) < 40.0)
+            else if(fabsf(fabsf(pos.angle - xAxisMagDir) - 180) < 40.0)
             {
                 pos.y = yAxisUS2.getDistance() + BlankWidth;
             }
@@ -633,11 +648,11 @@ Position<float> getCurPos()
             break;
         case 1:
             pos.x = 61.0 + (float)(-area[0] + area[2]) / 4.0 * SelfDiameter;
-            if(fabs(angle - xAxisMagDir) <= 40.0)
+            if(fabsf(pos.angle - xAxisMagDir) <= 40.0)
             {
                 pos.y = yAxisUS1.getDistance() + GateDepth;
             }
-            else if(fabs(fabs(angle - xAxisMagDir) - 180) < 40.0)
+            else if(fabsf(fabsf(pos.angle - xAxisMagDir) - 180) < 40.0)
             {
                 pos.y = yAxisUS2.getDistance() + GateDepth;
             }
@@ -645,14 +660,14 @@ Position<float> getCurPos()
             {
                 pos.y = 0;
             }
-            break
+            break;
         case 2:
             pos.x = 102.75 - (float)(area[1] + area[3]) / 4.0 * SelfDiameter;
-            if(fabs(angle - xAxisMagDir) <= 40.0)
+            if(fabsf(pos.angle - xAxisMagDir) <= 40.0)
             {
                 pos.y = yAxisUS1.getDistance() + BlankWidth;
             }
-            else if(fabs(fabs(angle - xAxisMagDir) - 180) < 40.0)
+            else if(fabsf(fabsf(pos.angle - xAxisMagDir) - 180) < 40.0)
             {
                 pos.y = yAxisUS2.getDistance() + BlankWidth;
             }
@@ -663,11 +678,11 @@ Position<float> getCurPos()
             break;
         case 3:
             pos.x = 61.0 + (float)(-area[0] + area[2]) / 4.0 * SelfDiameter;
-            if(fabs(angle - xAxisMagDir) <= 40.0)
+            if(fabsf(pos.angle - xAxisMagDir) <= 40.0)
             {
                 pos.y = yAxisUS1.getDistance() + GateDepth;
             }
-            else if(fabs(fabs(angle - xAxisMagDir) - 180) < 40.0)
+            else if(fabsf(fabsf(pos.angle - xAxisMagDir) - 180) < 40.0)
             {
                 pos.y = yAxisUS2.getDistance() + GateDepth;
             }
@@ -685,11 +700,39 @@ Position<float> getCurPos()
     return pos;
 }
 
+bool face2Enemy(float angle)
+{
+    return fabsf(angle - xAxisMagDir) <= 180.0 ||
+           fabsf(angle - xAxisMagDir + 360.0) <= 180.0 ||
+           fabsf(angle - xAxisMagDir - 360.0) <= 180.0;
+}
+
+bool face2Enemy(void)
+{
+    return face2Enemy(compass.heading());
+}
+
+bool ballFace2Enemy(void)
+{
+    return face2Enemy(getAngle2xAxis() + getAngle2Ball());
+}
+
+bool face2Ball(uint* arr)
+{
+    uchr t = eye.getMinNo(arr);
+    return t == 0 || t == 1;
+}
+bool face2Ball(void)
+{
+    uchr t = eye.getMinNo();
+    return t == 0 || t == 1;
+}
+
 template <typename T>
 T Sum(T *arr,uint n)
 {
-    T s = T(0);
-    for(uint i = 0; i < n; ++i)
+    T s = arr[0];
+    for(uint i = 1; i < n; ++i)
         s += arr[i];
     return s;
 }
@@ -703,8 +746,8 @@ T Avg(T *arr,uint n)
 template <typename T>
 T Max(T *arr,uint n)
 {
-    T t = 0;
-    for(uchr i = 0; i < n; ++i)
+    T t = arr[0];
+    for(uchr i = 1; i < n; ++i)
     {
         if(arr[i] > t)
         {
@@ -730,4 +773,11 @@ uint EEPROM_readInt(uint addr)
     high = EEPROM.read(addr++);
     low  = EEPROM.read(addr++);
     return (int)high << 8 | low;
+}
+
+void delay10ms()
+{
+    unsigned int i = 26400;
+    while(--i)
+        NOP;
 }

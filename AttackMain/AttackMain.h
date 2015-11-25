@@ -46,16 +46,35 @@
 //#define IntKey                  3
 
 #define degree2radian(angle) ((angle) / 180.0 * M_PI)
+#define radian2degree(angle) ((angle) / M_PI * 180.0)
 
 #ifndef DEBUG
 #define DEBUG
-#define debugSerial Serial
+#define debugSerial Serial1
 #endif
+
+#ifndef NOP
+#define NOP asm("nop")
+#endif // NOP
+
+template<typename T>
+struct Position
+{
+    T x,y;
+    float angle;
+    Position()
+    {
+    }
+
+    Position(T _x,T _y,float a = 0.0):x(_x),y(_y),angle(a)
+    {
+    }
+};
 
 extern LSM303          compass;
 extern IR_Eye          eye;
 
-extern DC_MotorVerticalSquare<DC_Motor_EN> motor;\
+extern DC_MotorVerticalSquare<DC_Motor_EN> motor;
 extern DC_Motor_EN_1   ballMotor;
 
 extern US_Distance     xAxisUS1;
@@ -68,21 +87,8 @@ extern AnalogGray_Color      xAxisGray2;
 extern AnalogGray_Color      yAxisGray1;
 extern AnalogGray_Color      yAxisGray2;
 
-extern PID  anglePID;
-extern float xAxisMagDir;
-
-template<typename T>
-struct Position{
-    T x,y;
-    float angle;
-    Position()
-    {
-    }
-
-    Position(T _x,T _y,float a = 0.0):x(_x),y(_y),angle(a)
-    {
-    }
-};
+extern float                    xAxisMagDir;
+extern const Position<float>    gatePosition,homePosition;
 
 void presetColor(void);
 void loadPresetColor(void);
@@ -99,10 +105,16 @@ float checkDistance(float);
 uchr judgeArea(void);
 bool inArea(uchr);
 float getAngle2Ball(void);
-float getAngle2Ball(uint *arr);
+float getAngle2Ball(uint*);
 float getAngle2Gate(void);
 float getAngle2xAxis(void);
-Position<float> getCurPos();
+float getAngle2Home(void);
+Position<float> getCurPos(void);
+bool face2Enemy(float);
+bool face2Enemy(void);
+bool ballFace2Enemy(void);
+bool face2Ball(uint*);
+bool face2Ball(void);
 
 template <typename T>
 T Avg(T *arr,uint n);
@@ -113,5 +125,7 @@ T Max(T *arr,uint n);
 
 void EEPROM_writeInt(uint addr,uint data);
 uint EEPROM_readInt(uint addr);
+
+void delay10ms();
 
 #endif // __ATTACK_MAIN_H__
