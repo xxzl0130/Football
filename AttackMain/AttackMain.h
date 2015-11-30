@@ -54,11 +54,6 @@
 #define degree2radian(angle) ((angle) / 180.0 * M_PI)
 #define radian2degree(angle) ((angle) / M_PI * 180.0)
 
-#ifndef DEBUG
-#define DEBUG
-#define debugSerial Serial1
-#endif
-
 #ifndef NOP
 #define NOP asm("nop")
 #endif // NOP

@@ -2,8 +2,8 @@
 todo:
 µ÷Õûattack
 */
-#define DEBUG
-#define debugSerial Serial1
+/*#define DEBUG
+#define debugSerial Serial1*/
 
 #include <AttackMain.h>
 #include "LSM303.h"
@@ -80,12 +80,9 @@ void setup()
 
 void loop()
 {
-    static Position<float> pos;
-    static PID pid(0.5,0,0);
-    pos = getCurPos();
     if(powerState)
     {
-        attack();
+        move();
     }
     else
     {
