@@ -4,9 +4,8 @@
 #include <MsTimer2.h>
 #include <stdlib.h>
 
-#define IntKey  3
-
-#define NOP() asm("nop")
+#define IntKey  2
+#define LED 13
 
 /*#ifndef DEBUG
 #define DEBUG
@@ -28,24 +27,25 @@ void setup()
     debugSerial.begin(9600);
     debugSerial.println("debug");
 #endif
-    Serial.begin(9600);
-    pinMode(KeyPin,INPUT_PULLUP);
+    pinMode(IntKey,INPUT_PULLUP);
     pinMode(49,INPUT);
-    attachInterrupt(1,stop,HIGH);
+    pinMode(LED,OUTPUT);
+    digitalWrite(LED,LOW);
     if(digitalRead(49) == HIGH)
     {
-        while(digitalRead(KeyPin) == HIGH);
+        while(digitalRead(IntKey) == HIGH);
         setCompassOffset();
+        flashLED();
     }
     else
     {
         loadCompassOffset();
+        flashLED();
     }
-    while(digitalRead(KeyPin) == HIGH);
+    while(digitalRead(IntKey) == HIGH);
     setXAxisMagDir();
-
-    pinMode(IntKey,INPUT);
-    attachInterrupt(1,power,HIGH);
+    flashLED();
+    attachInterrupt(0,power,LOW);
 }
 
 void loop()
@@ -54,7 +54,7 @@ void loop()
     if(powerState)
         move();
     else
-        NOP();
+        NOP ;
 }
 
 void move()
@@ -88,6 +88,14 @@ void power()
         if(!powerState)
         {
             motor.stop();
+            digitalWrite(LED,LOW);
         }
+        else
+        {
+            digitalWrite(LED,HIGH);
+        }
+#ifdef DEBUG
+        debugSerial.println(powerState);
+#endif // DEBUG
     }
 }

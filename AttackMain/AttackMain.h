@@ -4,8 +4,8 @@
 #include <arduino.h>
 #include <math.h>
 #include <stdlib.h>
-#include <C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\EEPROM\EEPROM.h>
-#include <C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\Wire.h>
+#include <C:\Arduino\hardware\arduino\avr\libraries\EEPROM\EEPROM.h>
+#include <C:\Arduino\hardware\arduino\avr\libraries\Wire\Wire.h>
 #include <../LSM303/LSM303.h>
 #include <../IR_Eye/IR_Eye.h>
 #include <../DC_Motor/DC_Motor.h>
@@ -31,15 +31,21 @@
 #define MinDistance             5
 //对超声波测距数据做上下限限制
 #define MapLength               183
+#define halfMapLength           91.5
 #define MapWidth                122
-#define BlankWidth              30
+#define halfMapWidth            61
+#define yBlankWidth             30
+#define xBlankWidth             22
 #define SelfDiameter            24.5
+#define halfSelfDiameter        12.25
 #define GateDepth               8
 //场地尺寸
 #define ColorStorageAddr        0
 #define ColorStorageOffset      (4*4*2)
 #define CompassStorageAddr      (ColorStorageAddr + ColorStorageOffset)
 #define CompassStorageOffset    (3*2)
+#define xAxisStorageAddr        (CompassStorageAddr + CompassStorageOffset)
+#define xAxisStorageOffset      (2)
 //EEPROM存储地址信息
 #define KeyPinSt                34
 #define KeyPinCnt               8
@@ -62,11 +68,12 @@ struct Position
 {
     T x,y;
     float angle;
+    uchr area;
     Position()
     {
     }
 
-    Position(T _x,T _y,float a = 0.0):x(_x),y(_y),angle(a)
+    Position(T _x,T _y,float a = 0.0,uchr _area = 0):x(_x),y(_y),angle(a),area(_area)
     {
     }
 };
@@ -96,6 +103,7 @@ void adjustColor(uchr);
 void setCompassOffset(void);
 void loadCompassOffset(void);
 void setXAxisMagDir(void);
+void loadxAxisMagDir(void);
 void preset(void);
 //for preset
 
@@ -107,8 +115,11 @@ bool inArea(uchr);
 float getAngle2Ball(void);
 float getAngle2Ball(uint*);
 float getAngle2Gate(void);
+float getAngle2Gate(Position<float> &pos);
 float getAngle2xAxis(void);
+float getAngle2xAxis(float);
 float getAngle2Home(void);
+float getFaceAngle2Gate(void);
 Position<float> getCurPos(void);
 bool face2Enemy(float);
 bool face2Enemy(void);

@@ -5,8 +5,8 @@ LSM303          compass;
 IR_Eye          eye(A0,10,360);
 
 DC_MotorVerticalSquare<DC_Motor_EN> motor(DC_MotorPair<DC_Motor_EN>(DC_Motor_EN(4,5,21),DC_Motor_EN(6,7,22)),
-        DC_MotorPair<DC_Motor_EN>(DC_Motor_EN(8,9,23),DC_Motor_EN(10,11,24)));
-DC_Motor_EN_1   ballMotor(50,51,12);
+        DC_MotorPair<DC_Motor_EN>(DC_Motor_EN(8,9,23),DC_Motor_EN(11,12,24)));
+DC_Motor_EN_1   ballMotor(50,51,3);
 
 US_Distance     xAxisUS1(30,31);
 US_Distance     xAxisUS2(28,29);
@@ -143,15 +143,12 @@ void presetColor()
     //存入第四个颜色
 
     uint addr = ColorStorageAddr;
-    byte high,low;
     for(uchr i = 0; i < 4; ++i)
     {
         for(uchr j = 0; j < 4; ++j)
         {
-            high = (byte)(color[i][j] >> 8);
-            low  = (byte)(color[i][j] & 0xff);
-            EEPROM.write(addr++,high);
-            EEPROM.write(addr++,low);
+            EEPROM_writeInt(addr,color[i][j]);
+            addr += 2;
         }
     }
     //将数据存入EEPROM
@@ -256,7 +253,6 @@ void setCompassOffset()
 
 void loadCompassOffset()
 {
-    byte high,low;
     uint addr = CompassStorageAddr;
     LSM303::vector<int> Offset;
 
@@ -297,6 +293,16 @@ void setXAxisMagDir(void)
 
     xAxisMagDir = heading.avg();
 
+    EEPROM_writeInt(xAxisStorageAddr,(uint)xAxisMagDir);
+#ifdef DEBUG
+    debugSerial.print("xAxis Mag Dir:");
+    debugSerial.println(xAxisMagDir);
+#endif // DEBUG
+}
+
+void loadxAxisMagDir(void)
+{
+    xAxisMagDir = (float)EEPROM_readInt(xAxisStorageAddr);
 #ifdef DEBUG
     debugSerial.print("xAxis Mag Dir:");
     debugSerial.println(xAxisMagDir);
@@ -336,16 +342,32 @@ float getAngle2Ball(uint *arr)
 
 float getAngle2xAxis(void)
 {
-    return compass.heading() - xAxisMagDir;
+    return xAxisMagDir - compass.heading();
 }
 
+float getAngle2xAxis(float angle)
+{
+    return xAxisMagDir - angle;
+}
+
+//球门中心到机器中心连线角度
 float getAngle2Gate(void)
 {
     Position<float> pos;
-    float angle;
     pos = getCurPos();
+    return getAngle2Gate(pos);
+}
+
+float getAngle2Gate(Position<float> &pos)
+{
+    float angle;
     angle = atan2f(gatePosition.y - pos.y,gatePosition.x - pos.x);
     return radian2degree(angle);
+}
+
+float getFaceAngle2Gate(void)
+{
+    return getAngle2xAxis() - getAngle2Gate();
 }
 
 float getAngle2Home(void)
@@ -446,7 +468,6 @@ uchr judgeArea(void)
     {
         ++area[t];
     }
-
     for(t = i = 0; i < 4; ++i)
     {
         if(area[i] > t)
@@ -574,7 +595,7 @@ void adjustColor(uchr no)
     debugSerial.print("Adjust Color No.");
     debugSerial.print(no);
     debugSerial.print(":");
-    for(char i = 0; i < 4; ++i)
+    for(uchr i = 0; i < 4; ++i)
     {
         debugSerial.print(avg[i][no].avg());
         if(i < 3)
@@ -595,10 +616,16 @@ void adjustColor(uchr no)
 
 Position<float> getCurPos(void)
 {
-    Position<float> pos;
-    static uchr area[4],t,i,j,k = 0;
-    if(!k)
-        pos.angle = compass.heading();
+    static Position<float> pos,lastPos;
+    static uchr area[4],t,i,j;
+    static float angle;
+
+    memset(area,0,sizeof(area));
+
+    lastPos = pos;
+
+    pos.angle = compass.heading();
+
     if((t = xAxisGray1.color()) != 0xff)
     {
         ++area[t];
@@ -615,7 +642,7 @@ Position<float> getCurPos(void)
     {
         ++area[t];
     }
-    for(t = i = 0; i < 4; ++i)
+    for(t = i = j = 0; i < 4; ++i)
     {
         if(area[i] > t)
         {
@@ -623,88 +650,72 @@ Position<float> getCurPos(void)
             j = i;
         }
     }
+
+    pos.area = j;
+
     if(t == 0)
     {
-        pos.x = pos.y = 0;
+        pos.x = xAxisUS1.getDistance() - xBlankWidth + halfSelfDiameter;
+        pos.y = yAxisUS1.getDistance() - yBlankWidth + halfSelfDiameter;
+        pos.area = 0xff;
     }
     else
     {
-        switch(j)
+        angle = getAngle2xAxis(pos.angle);
+        if(fabsf(sinf(degree2radian(angle))) < 0.5)
         {
-        case 0:
-            pos.x = 19.25 + (float)(area[1] + area[3]) / 4.0 * SelfDiameter;
-            if(fabsf(pos.angle - xAxisMagDir) <= 40.0)
+            //角度较小，可以直接用超声波定位
+            pos.x = xAxisUS1.getDistance() - xBlankWidth + halfSelfDiameter;
+            switch(pos.area)
             {
-                pos.y = yAxisUS1.getDistance() + BlankWidth;
+            case 0:
+            case 2:
+                pos.y = yAxisUS1.getDistance() - yBlankWidth + halfSelfDiameter;
+                break;
+            case 1:
+            case 3:
+                pos.y = yAxisUS1.getDistance() - GateDepth + halfSelfDiameter;
+                break;
+            default:
+                pos.y = yAxisUS1.getDistance() - yBlankWidth + halfSelfDiameter;
+                break;
             }
-            else if(fabsf(fabsf(pos.angle - xAxisMagDir) - 180) < 40.0)
+            if(!face2Enemy(pos.angle))
             {
-                pos.y = yAxisUS2.getDistance() + BlankWidth;
+                pos.x = MapWidth - pos.x;
+                pos.y = MapLength - pos.y;
             }
-            else
+        }
+        else
+        {
+            //角度较大，x轴通过地面颜色定位估计，y轴通过上一次的位置估计
+            switch(pos.area)
             {
-                pos.y = 0;
+            case 0:
+                pos.x = 19.25 + (float)(area[1] + area[3]) / 4.0 * SelfDiameter;
+                break;
+            case 1:
+                pos.x = 61.0 + (float)(-area[0] + area[2]) / 4.0 * SelfDiameter;
+                break;
+            case 2:
+                pos.x = 102.75 - (float)(area[1] + area[3]) / 4.0 * SelfDiameter;
+                break;
+            case 3:
+                pos.x = 61.0 + (float)(-area[0] + area[2]) / 4.0 * SelfDiameter;
+                break;
+            default:
+                pos.x = pos.y = 0.0;
+                break;
             }
-            break;
-        case 1:
-            pos.x = 61.0 + (float)(-area[0] + area[2]) / 4.0 * SelfDiameter;
-            if(fabsf(pos.angle - xAxisMagDir) <= 40.0)
-            {
-                pos.y = yAxisUS1.getDistance() + GateDepth;
-            }
-            else if(fabsf(fabsf(pos.angle - xAxisMagDir) - 180) < 40.0)
-            {
-                pos.y = yAxisUS2.getDistance() + GateDepth;
-            }
-            else
-            {
-                pos.y = 0;
-            }
-            break;
-        case 2:
-            pos.x = 102.75 - (float)(area[1] + area[3]) / 4.0 * SelfDiameter;
-            if(fabsf(pos.angle - xAxisMagDir) <= 40.0)
-            {
-                pos.y = yAxisUS1.getDistance() + BlankWidth;
-            }
-            else if(fabsf(fabsf(pos.angle - xAxisMagDir) - 180) < 40.0)
-            {
-                pos.y = yAxisUS2.getDistance() + BlankWidth;
-            }
-            else
-            {
-                pos.y = 0;
-            }
-            break;
-        case 3:
-            pos.x = 61.0 + (float)(-area[0] + area[2]) / 4.0 * SelfDiameter;
-            if(fabsf(pos.angle - xAxisMagDir) <= 40.0)
-            {
-                pos.y = yAxisUS1.getDistance() + GateDepth;
-            }
-            else if(fabsf(fabsf(pos.angle - xAxisMagDir) - 180) < 40.0)
-            {
-                pos.y = yAxisUS2.getDistance() + GateDepth;
-            }
-            else
-            {
-                pos.y = 0;
-            }
-            break;
-        default:
-            pos.x = pos.y = 0.0;
-            break;
+            pos.y = lastPos.y + sinf(degree2radian(motor.getCurrentAngle())) * 20.0;
         }
     }
-    k = (k + 1) % 10;
     return pos;
 }
 
 bool face2Enemy(float angle)
 {
-    return fabsf(angle - xAxisMagDir) <= 180.0 ||
-           fabsf(angle - xAxisMagDir + 360.0) <= 180.0 ||
-           fabsf(angle - xAxisMagDir - 360.0) <= 180.0;
+    return cosf(degree2radian(getAngle2xAxis(angle))) >= 0.0;
 }
 
 bool face2Enemy(void)

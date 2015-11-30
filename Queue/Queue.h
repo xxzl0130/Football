@@ -18,7 +18,7 @@ protected:
     QueueNode<T> *head,*tail,*tmp;
     unsigned int cnt;
 public:
-    Queue():cnt(0),head(NULL),tail(NULL)
+    Queue():head(NULL),tail(NULL),tmp(NULL),cnt(0)
     {
     }
 

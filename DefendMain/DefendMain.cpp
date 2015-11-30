@@ -128,7 +128,7 @@ bool keyPressed(uchr pin,uchr mode)
 {
     if(digitalRead(pin) == mode)
     {
-        delay(10);
+        delay10ms();
         if(digitalRead(pin) == mode)
         {
             return true;
@@ -184,3 +184,22 @@ uint EEPROM_readInt(uint addr)
     return (int)high << 8 | low;
 }
 
+void delay10ms()
+{
+    unsigned int i = 26400;
+    while(--i)
+        NOP;
+}
+
+void flashLED(uint time)
+{
+    pinMode(13,OUTPUT);
+
+    for(int i = 0; i < 3; ++i)
+    {
+        digitalWrite(13,HIGH);
+        delay(time);
+        digitalWrite(13,LOW);
+        delay(time);
+    }
+}

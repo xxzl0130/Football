@@ -23,11 +23,10 @@ private:
     float degreePerEye;
     /**每只眼对应的角度**/
     uint *value;
-
 public:
     uint environIR;
     /**环境光干扰**/
-    IR_Eye(uchr Pin = A0,uchr Cnt = 6,uint Angel = 180):environIR(950),sPin(Pin),cntEye(Cnt)
+    IR_Eye(uchr Pin = A0,uchr Cnt = 6,uint Angel = 180):sPin(Pin),cntEye(Cnt),environIR(1024)
     {
         for(uchr i = 0; i < cntEye; ++i)
         {

@@ -31,7 +31,7 @@ protected:
     uchr currentSpeed;
     Direction currentDir;
 public:
-    DC_Motor(uchr Pin0,uchr Pin1)
+    DC_Motor(uchr Pin0,uchr Pin1):currentSpeed(0),currentDir(FORWORD)
     {
         Pin[0] = Pin0;
         Pin[1] = Pin1;
@@ -62,6 +62,7 @@ public:
     {
         digitalWrite(Pin[0],HIGH);
         digitalWrite(Pin[1],HIGH);
+        currentSpeed = 0;
     }
 
     void speedUp(int plusSpeed)
@@ -119,8 +120,6 @@ public:
 
 class DC_Motor_EN_1:public DC_Motor_EN
 {
-protected:
-
 public:
     DC_Motor_EN_1(uchr Pin0,uchr Pin1,uchr enPin):DC_Motor_EN(Pin0,Pin1,enPin)
     {
@@ -139,10 +138,14 @@ public:
 template <typename T>
 class DC_MotorPair
 {
+protected:
+    uchr currentSpeed;
+    Direction currentDir;
+    bool rotating;
 public:
     T left,right;
 
-    DC_MotorPair(T a,T b):left(a),right(b)
+    DC_MotorPair(T a,T b):currentSpeed(0),currentDir(FORWORD),rotating(false),left(a),right(b)
     {
         //使用传入的DC_Motor_EN对象（或其基类DC_Motor对象）初始化
     }
@@ -151,18 +154,23 @@ public:
     {
         left.run(Dir,Speed);
         right.run(Dir,Speed);
+        currentSpeed = Speed;
+        currentDir = Dir;
+        rotating = false;
     }
 
     inline void rotateRun(Direction Dir,uchr Speed)
     {
         left.run(Dir,Speed);
         right.run(Dir == FORWORD ? BACKWORD : FORWORD,Speed);
+        rotating = true;
     }
 
     inline void reverse()
     {
         left.reverse();
         right.reverse();
+        currentDir = currentDir == FORWORD ? BACKWORD : FORWORD;
     }
 
     inline void speedUp(int plusSpeed)
@@ -171,20 +179,46 @@ public:
         right.speedUp(plusSpeed);
     }
 
+    inline void rotateSpeedUp(int plusSpeed)
+    {
+        left.speedUp(plusSpeed);
+        right.speedUp(-plusSpeed);
+    }
+
     inline void stop()
     {
         left.stop();
         right.stop();
+        currentSpeed = 0;
+    }
+
+    inline uchr getCurrentSpeed(void)const
+    {
+        return currentSpeed;
+    }
+
+    inline Direction getCurrentDir(void)const
+    {
+        return currentDir;
+    }
+
+    inline bool isRotating(void)const
+    {
+        return rotating;
     }
 };
 
 template <typename T>
 class DC_MotorVerticalSquare
 {
+protected:
+    uchr currentSpeed;
+    float currentAngle;
+    bool rotating;
 public:
     DC_MotorPair<T> xAxis,yAxis;
 
-    DC_MotorVerticalSquare(DC_MotorPair<T> x,DC_MotorPair<T> y):xAxis(x),yAxis(y)
+    DC_MotorVerticalSquare(DC_MotorPair<T> x,DC_MotorPair<T> y):currentSpeed(0),currentAngle(0),rotating(false),xAxis(x),yAxis(y)
     {
     }
 
@@ -230,12 +264,22 @@ public:
 
         xAxis.run(spd.xDir,spd.xSpeed);
         yAxis.run(spd.yDir,spd.ySpeed);
+
+        rotating = false;
+        currentAngle = angle;
+        currentSpeed = speed;
     }
 
     inline void speedUp(int xPlusSpeed,int yPlusSpeed)
     {
         xAxis.speedUp(xPlusSpeed);
         yAxis.speedUp(yPlusSpeed);
+    }
+
+    inline void rotateSpeedUp(int plusSpeed)
+    {
+        xAxis.rotateSpeedUp(plusSpeed);
+        yAxis.rotateSpeedUp(plusSpeed);
     }
 
     inline void stop()
@@ -248,6 +292,8 @@ public:
     {
         xAxis.rotateRun(dir,speed);
         yAxis.rotateRun(dir,speed);
+        currentSpeed = speed;
+        rotating = true;
     }
 
     inline void reverse()
@@ -259,14 +305,32 @@ public:
     inline void run(float angle,uchr speed,uchr omega,Direction dir)
     {
         angleRun(angle,speed);
-        if(dir == FORWORD)
+        if(omega)
         {
-            speedUp(omega,-omega);
+            if(dir == FORWORD)
+            {
+                speedUp(omega,-omega);
+            }
+            else
+            {
+                speedUp(-omega,omega);
+            }
         }
-        else
-        {
-            speedUp(-omega,omega);
-        }
+    }
+
+    inline uchr getCurrentSpeed(void)const
+    {
+        return currentSpeed;
+    }
+
+    inline float getCurrentAngle(void)const
+    {
+        return currentAngle;
+    }
+
+    inline bool isRotating(void)const
+    {
+        return rotating;
     }
 };
 

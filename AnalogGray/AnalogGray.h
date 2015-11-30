@@ -1,11 +1,6 @@
 #ifndef __ANALOG_GRAY_H__
 #define __ANALOG_GRAY_H__
 
-/*#ifndef DEBUG
-#define DEBUG
-#define debugSerial Serial1
-#endif*/
-
 #include "arduino.h"
 #include <../Queue/Queue.h>
 
@@ -18,7 +13,7 @@
 #endif
 
 #ifndef ColorThreshold
-#define ColorThreshold      8
+#define ColorThreshold      4
 #endif
 
 class AnalogGray
@@ -43,9 +38,21 @@ protected:
     int *colorPtr;
     CircleQueue_Avg<int> Que;
 public:
-    AnalogGray_Color(uchr p,uchr cnt):AnalogGray(p),cntColor(cnt),Que(CircleQueue_Avg<int>(8))
+    AnalogGray_Color(uchr p,uchr cnt):AnalogGray(p),cntColor(cnt),Que(CircleQueue_Avg<int>(4))
     {
         colorPtr = new int[cnt];
+    }
+
+    /******************************
+    函数名称：smoothRead
+    函数功能：利用CircleQueue_Avg对读取的值进行平滑处理
+    传入参数：无
+    返回值：平滑处理后的颜色值
+    ******************************/
+    int smoothRead()
+    {
+        Que.push(read());
+        return Que.avg();
     }
 
     /******************************
@@ -80,16 +87,6 @@ public:
     传入参数：无
     返回值：符合的颜色编号，找不到则返回0xff
     ******************************/
-    uchr color()
-    {
-        int val = read();
-        for(uchr i = 0; i < cntColor; ++i)
-        {
-            if(abs(val - colorPtr[i]) <= ColorThreshold)
-                return i;
-        }
-        return 0xff;
-    }
     uchr color(int val)
     {
         for(uchr i = 0; i < cntColor; ++i)
@@ -99,17 +96,10 @@ public:
         }
         return 0xff;
     }
-
-    /******************************
-    函数名称：smoothRead
-    函数功能：利用CircleQueue_Avg对读取的值进行平滑处理
-    传入参数：无
-    返回值：平滑处理后的颜色值
-    ******************************/
-    int smoothRead()
+    uchr color()
     {
-        Que.push(read());
-        return Que.avg();
+        int val = read();
+        return color(val);
     }
 };
 

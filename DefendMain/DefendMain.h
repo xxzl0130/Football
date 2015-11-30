@@ -4,8 +4,8 @@
 #include <arduino.h>
 #include <math.h>
 #include <stdlib.h>
-#include <C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\EEPROM\EEPROM.h>
-#include <C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\Wire.h>
+#include <C:\Arduino\hardware\arduino\avr\libraries\EEPROM\EEPROM.h>
+#include <C:\Arduino\hardware\arduino\avr\libraries\Wire\Wire.h>
 #include <../HMC5883L/HMC5883L.h>
 #include <../IR_Eye/IR_Eye.h>
 #include <../DC_Motor/DC_Motor.h>
@@ -29,7 +29,9 @@
 #define CompassStorageAddr      0
 #define CompassStorageOffset    (3*2)
 
-#define KeyPin  48
+#ifndef NOP
+#define NOP asm("nop")
+#endif // NOP
 
 extern HMC5883L            compass;
 extern IR_Eye              eye;
@@ -56,4 +58,7 @@ T Max(T *arr,uint n);
 
 void EEPROM_writeInt(uint addr,uint data);
 uint EEPROM_readInt(uint addr);
+
+void delay10ms();
+void flashLED(uint time = 100);
 #endif // __DEFEND_MAIN_H__
