@@ -15,6 +15,7 @@
 float dis,angle;
 Direction dir;
 uchr speed;
+int omega;
 uint value[10];
 volatile uchr powerState = 0;
 
@@ -59,6 +60,7 @@ void loop()
 
 void move()
 {
+    static PID pid(0.5,0.00005,0);
     dis = frontUS.getDistance();
     if(dis <= 60.0 || dis >= 88.0 || gray.read() < 110)
     {
@@ -76,8 +78,20 @@ void move()
     }
     speed = map(eye.getMinValue(value),0,1024,255,0);
     motor.run(dir,speed);
+    angle = compass.heading();
+    omega = (int)pid.Update(getAngle2xAxis(angle),angle);
+    if(omega > 100)
+    {
+        omega = 100;
+    }
+    else if(omega < -100)
+    {
+        omega = -100;
+    }
+    omega = (int)((float) omega * speed / SPEED_MAX);
+    motor.rotateSpeedUp(omega);
 
-    //delay(50);
+    delay(30);
 }
 
 void power()

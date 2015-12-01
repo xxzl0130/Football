@@ -13,6 +13,7 @@
 #include <../AnalogGray/AnalogGray.h>
 #include <../MsTimer2/MsTimer2.h>
 #include <../Queue/Queue.h>
+#include <../PID/PID.h>
 
 #ifndef uchr
 #define uchr unsigned char
@@ -48,6 +49,9 @@ void setCompassOffset(void);
 void loadCompassOffset(void);
 void setXAxisMagDir(void);
 bool keyPressed(uchr pin,uchr mode = HIGH);
+
+float getAngle2xAxis(void);
+float getAngle2xAxis(float);
 
 template <typename T>
 T Avg(T *arr,uint n);

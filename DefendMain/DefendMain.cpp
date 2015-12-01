@@ -203,3 +203,13 @@ void flashLED(uint time)
         delay(time);
     }
 }
+
+float getAngle2xAxis(void)
+{
+    return xAxisMagDir - compass.heading();
+}
+
+float getAngle2xAxis(float angle)
+{
+    return xAxisMagDir - angle;
+}
