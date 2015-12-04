@@ -2,8 +2,8 @@
 todo:
 µ÷Õûattack
 */
-/*#define DEBUG
-#define debugSerial Serial1*/
+#define DEBUG
+#define debugSerial Serial1
 
 #include <AttackMain.h>
 #include "LSM303.h"
@@ -15,7 +15,7 @@ todo:
 #define FLASH_FREQUENCE 25
 #endif
 
-#define holdBallThreshold   32
+#define holdBallThreshold   50
 #define chaseBallThreshold  128
 
 #define IntKey  2
@@ -105,15 +105,15 @@ void move(void)
     {
         if(!holdBall())
         {
-            eye.getAllValue(value);
-            if(eye.getMinValue(value) > chaseBallThreshold || ballFace2Enemy())
+            /*eye.getAllValue(value);
+            if(eye.getMinValue(value) > chaseBallThreshold || ballFace2Enemy())*/
             {
                 chaseBall();
             }
-            else
+            /*else
             {
                 quickBack();
-            }
+            }*/
         }
         else
         {
@@ -129,7 +129,7 @@ void search(void)
     debugSerial.println("search");
 #endif
     time = millis();
-    while(abs(eye.getMinValue(value) - eye.environIR) < 10)
+    while(!isBall())
     {
         motor.xAxis.run(FORWORD,SPEED_MAX);
         motor.yAxis.rotateRun(FORWORD,192);
